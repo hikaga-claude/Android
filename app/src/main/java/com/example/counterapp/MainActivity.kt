@@ -1,56 +1,50 @@
 package com.example.counterapp
 
+import android.app.Activity
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import com.example.counterapp.databinding.ActivityMainBinding
-import com.google.android.material.snackbar.Snackbar
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
-    private lateinit var binding: ActivityMainBinding
     private var count = 0
+    private lateinit var tvCount: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_main)
+
+        tvCount = findViewById(R.id.tv_count) as TextView
 
         if (savedInstanceState != null) {
-            count = savedInstanceState.getInt(KEY_COUNT, 0)
-            updateCountDisplay()
+            count = savedInstanceState.getInt("count", 0)
+            tvCount.text = count.toString()
         }
 
-        binding.btnIncrement.setOnClickListener {
+        (findViewById(R.id.btn_increment) as Button).setOnClickListener {
             count++
-            updateCountDisplay()
+            tvCount.text = count.toString()
         }
 
-        binding.btnDecrement.setOnClickListener {
+        (findViewById(R.id.btn_decrement) as Button).setOnClickListener {
             if (count > 0) {
                 count--
-                updateCountDisplay()
+                tvCount.text = count.toString()
             } else {
-                Snackbar.make(binding.root, R.string.cannot_go_below_zero, Snackbar.LENGTH_SHORT).show()
+                Toast.makeText(this, "0より小さくはできません", Toast.LENGTH_SHORT).show()
             }
         }
 
-        binding.btnReset.setOnClickListener {
+        (findViewById(R.id.btn_reset) as Button).setOnClickListener {
             count = 0
-            updateCountDisplay()
-            Snackbar.make(binding.root, R.string.counter_reset, Snackbar.LENGTH_SHORT).show()
+            tvCount.text = count.toString()
+            Toast.makeText(this, "カウンターをリセットしました", Toast.LENGTH_SHORT).show()
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(KEY_COUNT, count)
-    }
-
-    private fun updateCountDisplay() {
-        binding.tvCount.text = count.toString()
-    }
-
-    companion object {
-        private const val KEY_COUNT = "count"
+        outState.putInt("count", count)
     }
 }
