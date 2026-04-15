@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">カウンター</string>
+    <string name="app_name">西川さんお寿司カウンター</string>
     <string name="increment">＋ 増やす</string>
     <string name="decrement">－ 減らす</string>
     <string name="reset">リセット</string>
