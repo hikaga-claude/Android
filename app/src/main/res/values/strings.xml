@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">カウンター</string>
+    <string name="increment">＋ 増やす</string>
+    <string name="decrement">－ 減らす</string>
+    <string name="reset">リセット</string>
+    <string name="cannot_go_below_zero">0より小さくはできません</string>
+    <string name="counter_reset">カウンターをリセットしました</string>
+</resources>
