@@ -46,6 +46,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN)
+
         prefs = getSharedPreferences("sushi_prefs", Context.MODE_PRIVATE)
         totalCounters = prefs.getInt("counter_count", 6)
 
@@ -68,11 +70,6 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(Color.parseColor("#F0F0F0"))
         }
-
-        // 上部10%スペース（ステータスバー対策）
-        val screenHeight = resources.displayMetrics.heightPixels
-        root.addView(View(this), LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, screenHeight / 10))
 
         root.addView(TextView(this).apply {
             text = "西川さんお寿司カウンター"
