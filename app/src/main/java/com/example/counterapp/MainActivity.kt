@@ -42,6 +42,7 @@ class MainActivity : Activity() {
     private lateinit var scrollView: ScrollView
     private var totalCounters = 0
     private var cardWidth = 0
+    private var draggingIndex = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -196,6 +197,13 @@ class MainActivity : Activity() {
             setPadding(0, dp(2), 0, dp(2))
         }
         countViews.add(countView)
+        // 長押しでドラッグ開始
+        countView.setOnLongClickListener {
+            draggingIndex = index
+            val clip = android.content.ClipData.newPlainText("idx", index.toString())
+            card.startDrag(clip, android.view.View.DragShadowBuilder(card), null, 0)
+            true
+        }
         topSection.addView(countView,
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT))
@@ -235,7 +243,46 @@ class MainActivity : Activity() {
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT))
 
+        // ドロップ先として登録
+        card.setOnDragListener { _, event ->
+            when (event.action) {
+                android.view.DragEvent.ACTION_DRAG_ENTERED -> {
+                    if (index != draggingIndex) card.alpha = 0.55f
+                    true
+                }
+                android.view.DragEvent.ACTION_DRAG_EXITED -> {
+                    card.alpha = 1.0f
+                    true
+                }
+                android.view.DragEvent.ACTION_DROP -> {
+                    card.alpha = 1.0f
+                    val from = draggingIndex
+                    if (from >= 0 && from != index) swapCounters(from, index)
+                    true
+                }
+                android.view.DragEvent.ACTION_DRAG_ENDED -> {
+                    card.alpha = 1.0f
+                    draggingIndex = -1
+                    true
+                }
+                else -> true
+            }
+        }
+
         return card
+    }
+
+    private fun swapCounters(a: Int, b: Int) {
+        val tc = counts[a];       counts[a] = counts[b];       counts[b] = tc
+        val tn = names[a];        names[a] = names[b];         names[b] = tn
+        val tci = colorIndices[a]; colorIndices[a] = colorIndices[b]; colorIndices[b] = tci
+        prefs.edit()
+            .putString("name_$a", names[a])
+            .putString("name_$b", names[b])
+            .putInt("color_$a", colorIndices[a])
+            .putInt("color_$b", colorIndices[b])
+            .apply()
+        rebuildGrid()
     }
 
     private fun confirmDelete(index: Int) {
