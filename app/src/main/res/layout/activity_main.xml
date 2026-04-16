@@ -3,8 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="6dp"
     android:background="#F0F0F0">
+
+    <!-- 上10% の余白 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- コンテンツ 80% -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="8"
+        android:orientation="vertical"
+        android:padding="6dp">
 
     <TextView
         android:id="@+id/tv_title"
@@ -346,5 +359,14 @@
         </LinearLayout>
 
     </GridLayout>
+
+    </LinearLayout>
+    <!-- コンテンツここまで -->
+
+    <!-- 下10% の余白 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </LinearLayout>
