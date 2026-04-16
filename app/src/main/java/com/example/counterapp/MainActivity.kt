@@ -21,6 +21,8 @@ import android.widget.*
 class MainActivity : Activity() {
 
     private val DEFAULT_NAMES = arrayOf("まぐろ", "いか", "えび", "ぶり", "たまご", "かずき")
+    // ダスティローズ／ラベンダー／オーキッド／ペリウィンクル／モーブ／スレートブルー
+    private val DEFAULT_COLOR_INDICES = intArrayOf(14, 16, 19, 18, 15, 4)
 
     private val PASTEL_COLORS = intArrayOf(
         // アース系
@@ -75,7 +77,8 @@ class MainActivity : Activity() {
             counts.add(savedInstanceState?.getInt("count_$i", 0) ?: 0)
             val def = if (i < DEFAULT_NAMES.size) DEFAULT_NAMES[i] else "ネタ${i + 1}"
             names.add(prefs.getString("name_$i", def) ?: def)
-            colorIndices.add(prefs.getInt("color_$i", 0))
+            colorIndices.add(prefs.getInt("color_$i",
+                if (i < DEFAULT_COLOR_INDICES.size) DEFAULT_COLOR_INDICES[i] else 14))
         }
 
         cardWidth = (resources.displayMetrics.widthPixels - dp(24)) / 3
@@ -338,7 +341,8 @@ class MainActivity : Activity() {
                 counts.clear(); names.clear(); colorIndices.clear()
                 totalCounters = 6
                 for (i in 0 until 6) {
-                    counts.add(0); names.add(DEFAULT_NAMES[i]); colorIndices.add(0)
+                    counts.add(0); names.add(DEFAULT_NAMES[i])
+                    colorIndices.add(DEFAULT_COLOR_INDICES[i])
                 }
                 rebuildGrid()
             }
@@ -488,11 +492,11 @@ class MainActivity : Activity() {
             val name = edit.text.toString().trim()
             if (name.isNotEmpty()) {
                 val idx = totalCounters
-                counts.add(0); names.add(name); colorIndices.add(0)
+                counts.add(0); names.add(name); colorIndices.add(14)
                 prefs.edit()
                     .putString("name_$idx", name)
                     .putInt("counter_count", totalCounters + 1)
-                    .putInt("color_$idx", 0)
+                    .putInt("color_$idx", 14)
                     .apply()
                 totalCounters++
                 appendCard(idx)
