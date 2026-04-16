@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -404,12 +405,20 @@ class MainActivity : Activity() {
         val items = (0 until totalCounters)
             .map { Triple(names[it], counts[it], PASTEL_COLORS[colorIndices[it]]) }
             .sortedByDescending { it.second }
+        val chartView = BarChartView(this, items)
         val sv = ScrollView(this).apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
-        sv.addView(BarChartView(this, items), ViewGroup.LayoutParams(
+        sv.addView(chartView, ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        val wrapper = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        wrapper.addView(sv, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        wrapper.addView(makeCopyImgBtn(chartView), LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
+            it.setMargins(dp(16), dp(4), dp(16), dp(8))
+        })
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("棒グラフ（多い順・0含む）")
-            .setView(sv)
+            .setView(wrapper)
             .setNegativeButton("閉じる", null).show()
     }
 
@@ -418,6 +427,7 @@ class MainActivity : Activity() {
             .map { Triple(names[it], counts[it], PASTEL_COLORS[colorIndices[it]]) }
             .filter { it.second > 0 }
             .sortedByDescending { it.second }
+        val wrapper = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         val sv = ScrollView(this).apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
         if (items.isEmpty()) {
             sv.addView(TextView(this).apply {
@@ -425,14 +435,66 @@ class MainActivity : Activity() {
                 setPadding(dp(16), dp(16), dp(16), dp(16))
             }, ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-        } else {
-            sv.addView(PieChartView(this, items), ViewGroup.LayoutParams(
+            wrapper.addView(sv, LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        } else {
+            val chartView = PieChartView(this, items)
+            sv.addView(chartView, ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            wrapper.addView(sv, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            wrapper.addView(makeCopyImgBtn(chartView), LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
+                it.setMargins(dp(16), dp(4), dp(16), dp(8))
+            })
         }
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("円グラフ（多い順・0除外）")
-            .setView(sv)
+            .setView(wrapper)
             .setNegativeButton("閉じる", null).show()
+    }
+
+    private fun makeCopyImgBtn(chartView: View): Button =
+        Button(this).apply {
+            text = "📋 画像をコピー"
+            setTextColor(Color.parseColor("#1976D2"))
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                setStroke(dp(2), Color.parseColor("#1976D2"))
+            }
+            setOnClickListener { copyChartToClipboard(chartView) }
+        }
+
+    private fun copyChartToClipboard(chartView: View) {
+        if (android.os.Build.VERSION.SDK_INT < 29) {
+            Toast.makeText(this, "Android 10以上で利用できます", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val w = chartView.width
+        val h = chartView.height
+        if (w <= 0 || h <= 0) {
+            Toast.makeText(this, "グラフを表示してからコピーしてください", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+        canvas.drawColor(Color.WHITE)
+        chartView.draw(canvas)
+        val values = android.content.ContentValues().apply {
+            put(android.provider.MediaStore.Images.Media.DISPLAY_NAME,
+                "sushi_chart_${System.currentTimeMillis()}.png")
+            put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png")
+        }
+        val uri = contentResolver.insert(
+            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        if (uri == null) {
+            Toast.makeText(this, "コピーに失敗しました", Toast.LENGTH_SHORT).show()
+            return
+        }
+        contentResolver.openOutputStream(uri)?.use { bmp.compress(Bitmap.CompressFormat.PNG, 95, it) }
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        cm.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "sushi_chart", uri))
+        Toast.makeText(this, "グラフをコピーしました", Toast.LENGTH_SHORT).show()
     }
 
     private fun showManualDialog() {
