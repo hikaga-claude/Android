@@ -71,6 +71,12 @@ class MainActivity : Activity() {
             setBackgroundColor(Color.parseColor("#F0F0F0"))
         }
 
+        // パンチホール対策：システムのステータスバー高さ分だけ上に余白
+        val sbId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        val topInset = if (sbId > 0) resources.getDimensionPixelSize(sbId) else dp(28)
+        root.addView(View(this), LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, topInset))
+
         root.addView(TextView(this).apply {
             text = "西川さんお寿司カウンター"
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
@@ -94,21 +100,7 @@ class MainActivity : Activity() {
 
         for (i in 0 until totalCounters) appendCard(i)
 
-        // 全リセットボタン
-        inner.addView(Button(this).apply {
-            text = "デフォルトに戻す（全リセット）"
-            setTextColor(Color.parseColor("#F44336"))
-            background = GradientDrawable().apply {
-                setColor(Color.WHITE)
-                setStroke(dp(2), Color.parseColor("#F44336"))
-            }
-            setOnClickListener { showAllResetDialog() }
-        }, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
-            it.topMargin = dp(8)
-        })
-
-        // 追加フォーム
+        // 追加フォーム（スクロール内の最下部）
         inner.addView(buildAddSection(), LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
             it.topMargin = dp(6)
@@ -118,6 +110,18 @@ class MainActivity : Activity() {
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         root.addView(scrollView, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+
+        // 全リセットボタン（画面最下部に固定）
+        root.addView(Button(this).apply {
+            text = "デフォルトに戻す（全リセット）"
+            setTextColor(Color.parseColor("#F44336"))
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                setStroke(dp(2), Color.parseColor("#F44336"))
+            }
+            setOnClickListener { showAllResetDialog() }
+        }, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
         return root
     }
