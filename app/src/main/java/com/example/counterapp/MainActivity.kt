@@ -65,6 +65,7 @@ class MainActivity : Activity() {
     private var totalCounters = 0
     private var cardWidth = 0
     private var draggingIndex = -1
+    private val REQUEST_SPEECH = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,16 +100,30 @@ class MainActivity : Activity() {
         root.addView(View(this), LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, topInset))
 
-        root.addView(TextView(this).apply {
+        val titleBar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setGravity(Gravity.CENTER_VERTICAL)
+        }
+        titleBar.addView(TextView(this).apply {
             text = "西川さんお寿司カウンター"
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(Color.parseColor("#1976D2"))
             setGravity(Gravity.CENTER)
             maxLines = 1
-            setPadding(dp(8), dp(8), dp(8), dp(8))
-        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT))
+            setPadding(dp(8), dp(8), dp(4), dp(8))
+        }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        val micBtn = Button(this).apply {
+            text = "🎤"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+            setPadding(dp(4), dp(4), dp(8), dp(4))
+            background = GradientDrawable().apply { setColor(Color.TRANSPARENT) }
+            setOnClickListener { startVoiceInput() }
+        }
+        titleBar.addView(micBtn, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        root.addView(titleBar, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
         scrollView = ScrollView(this)
         val inner = LinearLayout(this).apply {
@@ -414,7 +429,8 @@ class MainActivity : Activity() {
                 "■ 名前を長押し\n背景色の変更ダイアログが開きます\n\n" +
                 "■ 数字を長押し\nカードをドラッグして並べ替えができます\n\n" +
                 "■ カード右上 ☒\nカードを削除します（確認ダイアログあり）\n\n" +
-                "■ 全リセットボタン\nデフォルト6種類に戻し、カウントをすべて0にします"
+                "■ 全リセットボタン\nデフォルト6種類に戻し、カウントをすべて0にします\n\n" +
+                "■ タイトル右の 🎤 ボタン\n音声でカウントを入力します\n例：「いか いち まぐろ さん」"
             )
             .setNegativeButton("閉じる", null).show()
     }
@@ -535,6 +551,68 @@ class MainActivity : Activity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         for (i in 0 until totalCounters) outState.putInt("count_$i", counts[i])
+    }
+
+    // ─── 音声入力 ─────────────────────────────────────────────
+
+    private fun startVoiceInput() {
+        val intent = android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "ja-JP")
+            putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "「ネタ名 数字」と話してください")
+            putExtra(android.speech.RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+        try {
+            startActivityForResult(intent, REQUEST_SPEECH)
+        } catch (e: Exception) {
+            Toast.makeText(this, "音声認識が利用できません", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_SPEECH && resultCode == Activity.RESULT_OK) {
+            val results = data?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
+            val text = results?.firstOrNull() ?: return
+            parseVoiceCommand(text)
+        }
+    }
+
+    private fun parseVoiceCommand(text: String) {
+        var anyMatch = false
+        var remaining = text
+        for (i in 0 until totalCounters) {
+            if (remaining.contains(names[i])) {
+                val afterName = remaining.substringAfter(names[i])
+                val n = extractNumber(afterName)
+                if (n > 0) {
+                    counts[i] += n
+                    countViews[i].text = counts[i].toString()
+                    anyMatch = true
+                }
+                remaining = remaining.replace(names[i], "")
+            }
+        }
+        if (!anyMatch) {
+            Toast.makeText(this, "「$text」\n認識できませんでした", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(this, "「$text」\n入力しました", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun extractNumber(text: String): Int {
+        Regex("\\d+").find(text)?.value?.toIntOrNull()?.let { return it }
+        val kanjiMap = mapOf("零" to 0, "一" to 1, "二" to 2, "三" to 3, "四" to 4,
+            "五" to 5, "六" to 6, "七" to 7, "八" to 8, "九" to 9, "十" to 10)
+        for ((k, v) in kanjiMap) { if (text.contains(k)) return v }
+        val kanaMap = listOf(
+            "じゅう" to 10, "きゅう" to 9, "はち" to 8, "なな" to 7, "しち" to 7,
+            "ろく" to 6, "いち" to 1, "さん" to 3, "よん" to 4, "ご" to 5, "に" to 2,
+            "し" to 4, "く" to 9
+        )
+        for ((k, v) in kanaMap) { if (text.contains(k)) return v }
+        return -1
     }
 
     // ─── グラフView ───────────────────────────────────────────
