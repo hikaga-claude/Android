@@ -4,106 +4,228 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.InputType
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.ViewGroup
+import android.widget.*
 
 class MainActivity : Activity() {
 
     private val DEFAULT_NAMES = arrayOf("まぐろ", "いか", "えび", "ぶり", "たまご", "かずき")
 
-    private val counts = IntArray(6)
-
-    // 個別変数で保持（ジェネリック配列を避ける）
-    private var tvName0: TextView? = null; private var tvName1: TextView? = null
-    private var tvName2: TextView? = null; private var tvName3: TextView? = null
-    private var tvName4: TextView? = null; private var tvName5: TextView? = null
-
-    private var tvCount0: TextView? = null; private var tvCount1: TextView? = null
-    private var tvCount2: TextView? = null; private var tvCount3: TextView? = null
-    private var tvCount4: TextView? = null; private var tvCount5: TextView? = null
+    private val counts     = mutableListOf<Int>()
+    private val names      = mutableListOf<String>()
+    private val nameViews  = mutableListOf<TextView>()
+    private val countViews = mutableListOf<TextView>()
 
     private lateinit var prefs: SharedPreferences
+    private lateinit var gridContainer: LinearLayout
+    private lateinit var scrollView: ScrollView
+    private var totalCounters = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
         prefs = getSharedPreferences("sushi_prefs", Context.MODE_PRIVATE)
+        totalCounters = prefs.getInt("counter_count", 6)
 
-        if (savedInstanceState != null) {
-            for (i in 0..5) counts[i] = savedInstanceState.getInt("count_$i", 0)
+        for (i in 0 until totalCounters) {
+            counts.add(savedInstanceState?.getInt("count_$i", 0) ?: 0)
+            val def = if (i < DEFAULT_NAMES.size) DEFAULT_NAMES[i] else "ネタ${i + 1}"
+            names.add(prefs.getString("name_$i", def) ?: def)
         }
 
-        // ビューを取得
-        tvName0 = findViewById(R.id.tv_name_0) as TextView
-        tvName1 = findViewById(R.id.tv_name_1) as TextView
-        tvName2 = findViewById(R.id.tv_name_2) as TextView
-        tvName3 = findViewById(R.id.tv_name_3) as TextView
-        tvName4 = findViewById(R.id.tv_name_4) as TextView
-        tvName5 = findViewById(R.id.tv_name_5) as TextView
-
-        tvCount0 = findViewById(R.id.tv_count_0) as TextView
-        tvCount1 = findViewById(R.id.tv_count_1) as TextView
-        tvCount2 = findViewById(R.id.tv_count_2) as TextView
-        tvCount3 = findViewById(R.id.tv_count_3) as TextView
-        tvCount4 = findViewById(R.id.tv_count_4) as TextView
-        tvCount5 = findViewById(R.id.tv_count_5) as TextView
-
-        val nameViews  = listOf(tvName0,  tvName1,  tvName2,  tvName3,  tvName4,  tvName5)
-        val countViews = listOf(tvCount0, tvCount1, tvCount2, tvCount3, tvCount4, tvCount5)
-
-        val incIds = intArrayOf(R.id.btn_inc_0, R.id.btn_inc_1, R.id.btn_inc_2,
-                                R.id.btn_inc_3, R.id.btn_inc_4, R.id.btn_inc_5)
-        val decIds = intArrayOf(R.id.btn_dec_0, R.id.btn_dec_1, R.id.btn_dec_2,
-                                R.id.btn_dec_3, R.id.btn_dec_4, R.id.btn_dec_5)
-        val rstIds = intArrayOf(R.id.btn_rst_0, R.id.btn_rst_1, R.id.btn_rst_2,
-                                R.id.btn_rst_3, R.id.btn_rst_4, R.id.btn_rst_5)
-
-        for (i in 0..5) {
-            val nv = nameViews[i] ?: continue
-            val cv = countViews[i] ?: continue
-
-            // 保存済みの名前をセット
-            nv.text = prefs.getString("name_$i", DEFAULT_NAMES[i]) ?: DEFAULT_NAMES[i]
-            cv.text = counts[i].toString()
-
-            // 名前タップで編集（コードでclickable設定）
-            val idx = i
-            nv.setOnClickListener { showEditDialog(idx) }
-
-            (findViewById(incIds[i]) as Button).setOnClickListener {
-                counts[idx]++
-                cv.text = counts[idx].toString()
-            }
-            (findViewById(decIds[i]) as Button).setOnClickListener {
-                if (counts[idx] > 0) { counts[idx]--; cv.text = counts[idx].toString() }
-            }
-            (findViewById(rstIds[i]) as Button).setOnClickListener {
-                counts[idx] = 0; cv.text = "0"
-            }
-        }
+        setContentView(buildUI())
     }
 
-    private fun nameViewAt(index: Int): TextView? = when (index) {
-        0 -> tvName0; 1 -> tvName1; 2 -> tvName2
-        3 -> tvName3; 4 -> tvName4; 5 -> tvName5
-        else -> null
+    private fun dp(v: Int) = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, v.toFloat(), resources.displayMetrics).toInt()
+
+    private fun buildUI(): LinearLayout {
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.parseColor("#F0F0F0"))
+        }
+
+        // タイトル
+        root.addView(TextView(this).apply {
+            text = "西川さんお寿司カウンター"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.parseColor("#1976D2"))
+            gravity = Gravity.CENTER
+            maxLines = 1
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT))
+
+        // スクロールエリア
+        scrollView = ScrollView(this)
+        val inner = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(3), dp(3), dp(3), dp(10))
+        }
+
+        gridContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        inner.addView(gridContainer, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+
+        for (i in 0 until totalCounters) appendCard(i)
+
+        // 追加フォーム
+        inner.addView(buildAddSection(), LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
+            it.topMargin = dp(8)
+        })
+
+        scrollView.addView(inner, ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        root.addView(scrollView, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+
+        return root
+    }
+
+    private fun appendCard(index: Int) {
+        val rowIdx = index / 3
+        while (gridContainer.childCount <= rowIdx) {
+            gridContainer.addView(LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+            }, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        }
+        val row = gridContainer.getChildAt(rowIdx) as LinearLayout
+        row.addView(buildCard(index),
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).also {
+                it.setMargins(dp(3), dp(3), dp(3), dp(3))
+            })
+    }
+
+    private fun buildCard(index: Int): LinearLayout {
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.WHITE)
+        }
+
+        // 名前ラベル
+        val nameView = TextView(this).apply {
+            text = names[index]
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.parseColor("#1976D2"))
+            gravity = Gravity.CENTER
+            setPadding(dp(4), dp(3), dp(4), dp(3))
+            background = GradientDrawable().apply { setColor(Color.parseColor("#E3F2FD")) }
+            setOnClickListener { showEditDialog(index) }
+        }
+        nameViews.add(nameView)
+        card.addView(nameView, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+
+        // カウント
+        val countView = TextView(this).apply {
+            text = counts[index].toString()
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 40f)
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.parseColor("#1976D2"))
+            gravity = Gravity.CENTER
+            setPadding(0, dp(2), 0, dp(2))
+        }
+        countViews.add(countView)
+        card.addView(countView, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+
+        // ボタン
+        val btnLayout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val h = dp(36)
+
+        fun btn(label: String, textColor: String, strokeColor: String, action: () -> Unit) =
+            Button(this).apply {
+                text = label
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+                setTextColor(Color.parseColor(textColor))
+                setPadding(0, 0, 0, 0)
+                background = GradientDrawable().apply {
+                    setColor(Color.WHITE)
+                    setStroke(dp(2), Color.parseColor(strokeColor))
+                }
+                setOnClickListener { action() }
+            }
+
+        btnLayout.addView(btn("＋", "#1976D2", "#1976D2") {
+            counts[index]++; countView.text = counts[index].toString()
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h))
+        btnLayout.addView(btn("－", "#546E7A", "#546E7A") {
+            if (counts[index] > 0) { counts[index]--; countView.text = counts[index].toString() }
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h))
+        btnLayout.addView(btn("×", "#B0BEC5", "#B0BEC5") {
+            counts[index] = 0; countView.text = "0"
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h))
+
+        card.addView(btnLayout, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+
+        return card
+    }
+
+    private fun buildAddSection(): LinearLayout {
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setBackgroundColor(Color.WHITE)
+            setPadding(dp(8), dp(6), dp(8), dp(6))
+        }
+
+        val edit = EditText(this).apply {
+            hint = "名前を入力して追加"
+            inputType = InputType.TYPE_CLASS_TEXT
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+        }
+        val addBtn = Button(this).apply {
+            text = "追加"
+            setTextColor(Color.parseColor("#1976D2"))
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                setStroke(dp(2), Color.parseColor("#1976D2"))
+            }
+        }
+
+        addBtn.setOnClickListener {
+            val name = edit.text.toString().trim()
+            if (name.isNotEmpty()) {
+                val idx = totalCounters
+                counts.add(0)
+                names.add(name)
+                prefs.edit()
+                    .putString("name_$idx", name)
+                    .putInt("counter_count", totalCounters + 1)
+                    .apply()
+                totalCounters++
+                appendCard(idx)
+                edit.text.clear()
+                scrollView.post { scrollView.fullScroll(ScrollView.FOCUS_DOWN) }
+            }
+        }
+
+        layout.addView(edit, LinearLayout.LayoutParams(
+            0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        layout.addView(addBtn, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+
+        return layout
     }
 
     private fun showEditDialog(index: Int) {
-        val current = nameViewAt(index)?.text?.toString() ?: DEFAULT_NAMES[index]
-
-        val edit = EditText(this)
-        edit.setText(current)
-        edit.inputType = InputType.TYPE_CLASS_TEXT
-        edit.selectAll()
-
-        val wrap = LinearLayout(this)
-        wrap.setPadding(60, 20, 60, 20)
+        val edit = EditText(this).apply {
+            setText(names.getOrElse(index) { "" })
+            inputType = InputType.TYPE_CLASS_TEXT
+            selectAll()
+        }
+        val wrap = LinearLayout(this).apply { setPadding(60, 20, 60, 20) }
         wrap.addView(edit)
 
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
@@ -111,8 +233,9 @@ class MainActivity : Activity() {
             .setView(wrap)
             .setPositiveButton("変更") { _, _ ->
                 val name = edit.text.toString().trim()
-                if (name.length > 0) {
-                    nameViewAt(index)?.text = name
+                if (name.isNotEmpty()) {
+                    names[index] = name
+                    nameViews[index].text = name
                     prefs.edit().putString("name_$index", name).apply()
                 }
             }
@@ -122,6 +245,6 @@ class MainActivity : Activity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        for (i in 0..5) outState.putInt("count_$i", counts[i])
+        for (i in 0 until totalCounters) outState.putInt("count_$i", counts[i])
     }
 }
