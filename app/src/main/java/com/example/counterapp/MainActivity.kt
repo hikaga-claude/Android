@@ -69,6 +69,11 @@ class MainActivity : Activity() {
             setBackgroundColor(Color.parseColor("#F0F0F0"))
         }
 
+        // 上部10%スペース（ステータスバー対策）
+        val screenHeight = resources.displayMetrics.heightPixels
+        root.addView(View(this), LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, screenHeight / 10))
+
         root.addView(TextView(this).apply {
             text = "西川さんお寿司カウンター"
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
