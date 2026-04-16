@@ -23,14 +23,31 @@ class MainActivity : Activity() {
     private val DEFAULT_NAMES = arrayOf("まぐろ", "いか", "えび", "ぶり", "たまご", "かずき")
 
     private val PASTEL_COLORS = intArrayOf(
+        // アース系
         Color.parseColor("#C8B89A"),
         Color.parseColor("#D4A882"),
-        Color.parseColor("#A4B898"),
-        Color.parseColor("#B8A898"),
         Color.parseColor("#C4906C"),
-        Color.parseColor("#96A8A8"),
-        Color.parseColor("#B89494"),
-        Color.parseColor("#A8A87C")
+        Color.parseColor("#A8A87C"),
+        // ブルー系
+        Color.parseColor("#8CAAC8"),
+        Color.parseColor("#7090B0"),
+        Color.parseColor("#94B0C8"),
+        Color.parseColor("#607890"),
+        // グリーン系
+        Color.parseColor("#90B498"),
+        Color.parseColor("#789870"),
+        Color.parseColor("#A4C0A0"),
+        Color.parseColor("#7A9A6C"),
+        // イエロー・ピンク系
+        Color.parseColor("#C8B870"),
+        Color.parseColor("#D0C468"),
+        Color.parseColor("#C49498"),
+        Color.parseColor("#B88090"),
+        // パープル系
+        Color.parseColor("#A890B8"),
+        Color.parseColor("#9480A8"),
+        Color.parseColor("#B4A0C4"),
+        Color.parseColor("#C0A0B4")
     )
 
     private val counts       = mutableListOf<Int>()
@@ -407,7 +424,7 @@ class MainActivity : Activity() {
         }
         val dialogHolder = arrayOfNulls<AlertDialog>(1)
 
-        for (row in 0..1) {
+        for (row in 0..4) {
             val rowLayout = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 setGravity(Gravity.CENTER)
