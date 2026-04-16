@@ -14,6 +14,7 @@ class MainActivity : Activity() {
 
     private val defaultNames = arrayOf("まぐろ", "いか", "えび", "ぶり", "たまご", "かずき")
     private val counts = IntArray(6)
+    private lateinit var prefs: android.content.SharedPreferences
 
     private val nameViewIds = intArrayOf(
         R.id.tv_name_0, R.id.tv_name_1, R.id.tv_name_2,
@@ -43,7 +44,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val prefs = getSharedPreferences("sushi_prefs", Context.MODE_PRIVATE)
+        prefs = getSharedPreferences("sushi_prefs", Context.MODE_PRIVATE)
 
         if (savedInstanceState != null) {
             for (i in 0..5) counts[i] = savedInstanceState.getInt("count_$i", 0)
@@ -58,8 +59,9 @@ class MainActivity : Activity() {
             countViews[i].text = counts[i].toString()
 
             // 名前をタップで編集ダイアログ
+            val idx = i
             nameViews[i].setOnClickListener {
-                showEditNameDialog(i, nameViews[i].text.toString(), prefs)
+                showEditNameDialog(idx, nameViews[idx].text.toString())
             }
 
             (findViewById(incIds[i]) as Button).setOnClickListener {
@@ -79,8 +81,7 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun showEditNameDialog(index: Int, currentName: String,
-                                   prefs: android.content.SharedPreferences) {
+    private fun showEditNameDialog(index: Int, currentName: String) {
         val editText = EditText(this).apply {
             setText(currentName)
             inputType = InputType.TYPE_CLASS_TEXT
@@ -91,7 +92,8 @@ class MainActivity : Activity() {
             addView(editText)
         }
 
-        AlertDialog.Builder(this)
+        // ダイアログテーマを明示指定（MIUI/Android 16対応）
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("名前を変更")
             .setView(container)
             .setPositiveButton("変更") { _, _ ->
