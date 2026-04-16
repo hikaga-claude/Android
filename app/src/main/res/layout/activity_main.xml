@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="8dp"
-    android:background="#F5F5F5">
+    android:padding="6dp"
+    android:background="#F0F0F0">
 
     <TextView
         android:id="@+id/tv_title"
@@ -16,8 +16,8 @@
         android:textColor="#1976D2"
         android:maxLines="1"
         android:gravity="center"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp" />
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp" />
 
     <GridLayout
         android:layout_width="match_parent"
@@ -34,43 +34,49 @@
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
             android:orientation="vertical"
-            android:gravity="center"
             android:background="#FFFFFF"
-            android:layout_margin="4dp"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="まぐろ"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#333333" />
-            <TextView
-                android:id="@+id/tv_count_0"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="48sp"
-                android:textStyle="bold"
-                android:textColor="#1976D2"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
+            android:layout_margin="3dp">
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="まぐろ"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333" />
+                <TextView
+                    android:id="@+id/tv_count_0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="52sp"
+                    android:textStyle="bold"
+                    android:textColor="#1976D2" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
                 android:orientation="horizontal">
                 <Button android:id="@+id/btn_inc_0"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="＋"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#1976D2" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_dec_0"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="－"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#546E7A" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_rst_0"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="×"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#B0BEC5" android:textColor="#FFFFFF" />
             </LinearLayout>
         </LinearLayout>
 
@@ -81,43 +87,49 @@
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
             android:orientation="vertical"
-            android:gravity="center"
             android:background="#FFFFFF"
-            android:layout_margin="4dp"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="いか"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#333333" />
-            <TextView
-                android:id="@+id/tv_count_1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="48sp"
-                android:textStyle="bold"
-                android:textColor="#1976D2"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
+            android:layout_margin="3dp">
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="いか"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333" />
+                <TextView
+                    android:id="@+id/tv_count_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="52sp"
+                    android:textStyle="bold"
+                    android:textColor="#1976D2" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
                 android:orientation="horizontal">
                 <Button android:id="@+id/btn_inc_1"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="＋"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#1976D2" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_dec_1"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="－"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#546E7A" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_rst_1"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="×"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#B0BEC5" android:textColor="#FFFFFF" />
             </LinearLayout>
         </LinearLayout>
 
@@ -128,43 +140,49 @@
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
             android:orientation="vertical"
-            android:gravity="center"
             android:background="#FFFFFF"
-            android:layout_margin="4dp"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="えび"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#333333" />
-            <TextView
-                android:id="@+id/tv_count_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="48sp"
-                android:textStyle="bold"
-                android:textColor="#1976D2"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
+            android:layout_margin="3dp">
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="えび"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333" />
+                <TextView
+                    android:id="@+id/tv_count_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="52sp"
+                    android:textStyle="bold"
+                    android:textColor="#1976D2" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
                 android:orientation="horizontal">
                 <Button android:id="@+id/btn_inc_2"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="＋"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#1976D2" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_dec_2"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="－"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#546E7A" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_rst_2"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="×"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#B0BEC5" android:textColor="#FFFFFF" />
             </LinearLayout>
         </LinearLayout>
 
@@ -175,43 +193,49 @@
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
             android:orientation="vertical"
-            android:gravity="center"
             android:background="#FFFFFF"
-            android:layout_margin="4dp"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ぶり"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#333333" />
-            <TextView
-                android:id="@+id/tv_count_3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="48sp"
-                android:textStyle="bold"
-                android:textColor="#1976D2"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
+            android:layout_margin="3dp">
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ぶり"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333" />
+                <TextView
+                    android:id="@+id/tv_count_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="52sp"
+                    android:textStyle="bold"
+                    android:textColor="#1976D2" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
                 android:orientation="horizontal">
                 <Button android:id="@+id/btn_inc_3"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="＋"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#1976D2" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_dec_3"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="－"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#546E7A" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_rst_3"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="×"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#B0BEC5" android:textColor="#FFFFFF" />
             </LinearLayout>
         </LinearLayout>
 
@@ -222,43 +246,49 @@
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
             android:orientation="vertical"
-            android:gravity="center"
             android:background="#FFFFFF"
-            android:layout_margin="4dp"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="たまご"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#333333" />
-            <TextView
-                android:id="@+id/tv_count_4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="48sp"
-                android:textStyle="bold"
-                android:textColor="#1976D2"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
+            android:layout_margin="3dp">
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="たまご"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333" />
+                <TextView
+                    android:id="@+id/tv_count_4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="52sp"
+                    android:textStyle="bold"
+                    android:textColor="#1976D2" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
                 android:orientation="horizontal">
                 <Button android:id="@+id/btn_inc_4"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="＋"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#1976D2" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_dec_4"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="－"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#546E7A" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_rst_4"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="×"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#B0BEC5" android:textColor="#FFFFFF" />
             </LinearLayout>
         </LinearLayout>
 
@@ -269,43 +299,49 @@
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
             android:orientation="vertical"
-            android:gravity="center"
             android:background="#FFFFFF"
-            android:layout_margin="4dp"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="かずき"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#333333" />
-            <TextView
-                android:id="@+id/tv_count_5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="48sp"
-                android:textStyle="bold"
-                android:textColor="#1976D2"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
+            android:layout_margin="3dp">
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="かずき"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333" />
+                <TextView
+                    android:id="@+id/tv_count_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="52sp"
+                    android:textStyle="bold"
+                    android:textColor="#1976D2" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
                 android:orientation="horizontal">
                 <Button android:id="@+id/btn_inc_5"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="＋"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#1976D2" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_dec_5"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="－"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#546E7A" android:textColor="#FFFFFF" />
                 <Button android:id="@+id/btn_rst_5"
-                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_width="0dp" android:layout_height="match_parent"
                     android:layout_weight="1" android:text="×"
-                    android:textSize="16sp" android:padding="0dp" />
+                    android:textSize="18sp" android:padding="0dp"
+                    android:background="#B0BEC5" android:textColor="#FFFFFF" />
             </LinearLayout>
         </LinearLayout>
 
