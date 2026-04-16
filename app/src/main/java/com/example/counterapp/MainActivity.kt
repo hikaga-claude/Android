@@ -20,20 +20,21 @@ class MainActivity : Activity() {
     private val DEFAULT_NAMES = arrayOf("まぐろ", "いか", "えび", "ぶり", "たまご", "かずき")
 
     private val PASTEL_COLORS = intArrayOf(
-        Color.parseColor("#E3F2FD"),  // 水色
-        Color.parseColor("#FCE4EC"),  // ピンク
-        Color.parseColor("#E8F5E9"),  // 緑
-        Color.parseColor("#EDE7F6"),  // 紫
-        Color.parseColor("#FFF3E0"),  // オレンジ
-        Color.parseColor("#FFFDE7"),  // 黄色
-        Color.parseColor("#E0F2F1"),  // ティール
-        Color.parseColor("#FFEBEE")  // 赤
+        Color.parseColor("#E3F2FD"),
+        Color.parseColor("#FCE4EC"),
+        Color.parseColor("#E8F5E9"),
+        Color.parseColor("#EDE7F6"),
+        Color.parseColor("#FFF3E0"),
+        Color.parseColor("#FFFDE7"),
+        Color.parseColor("#E0F2F1"),
+        Color.parseColor("#FFEBEE")
     )
 
     private val counts       = mutableListOf<Int>()
     private val names        = mutableListOf<String>()
     private val nameViews    = mutableListOf<TextView>()
     private val countViews   = mutableListOf<TextView>()
+    private val topSections  = mutableListOf<LinearLayout>()
     private val colorIndices = mutableListOf<Int>()
 
     private lateinit var prefs: SharedPreferences
@@ -55,9 +56,7 @@ class MainActivity : Activity() {
             colorIndices.add(prefs.getInt("color_$i", 0))
         }
 
-        // カード幅 = (画面幅 - 左右padding(6dp) - 3枚分の左右margin(18dp)) / 3
         cardWidth = (resources.displayMetrics.widthPixels - dp(24)) / 3
-
         setContentView(buildUI())
     }
 
@@ -75,7 +74,7 @@ class MainActivity : Activity() {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(Color.parseColor("#1976D2"))
-            gravity = Gravity.CENTER
+            setGravity(Gravity.CENTER)
             maxLines = 1
             setPadding(dp(8), dp(8), dp(8), dp(8))
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -93,9 +92,24 @@ class MainActivity : Activity() {
 
         for (i in 0 until totalCounters) appendCard(i)
 
-        inner.addView(buildAddSection(), LinearLayout.LayoutParams(
+        // 全リセットボタン
+        inner.addView(Button(this).apply {
+            text = "デフォルトに戻す（全リセット）"
+            setTextColor(Color.parseColor("#F44336"))
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                setStroke(dp(2), Color.parseColor("#F44336"))
+            }
+            setOnClickListener { showAllResetDialog() }
+        }, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
             it.topMargin = dp(8)
+        })
+
+        // 追加フォーム
+        inner.addView(buildAddSection(), LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
+            it.topMargin = dp(6)
         })
 
         scrollView.addView(inner, ViewGroup.LayoutParams(
@@ -115,7 +129,6 @@ class MainActivity : Activity() {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         }
         val row = gridContainer.getChildAt(rowIdx) as LinearLayout
-        // 固定幅（weight不使用）→ 左詰め自動配置
         row.addView(buildCard(index),
             LinearLayout.LayoutParams(cardWidth, ViewGroup.LayoutParams.WRAP_CONTENT).also {
                 it.setMargins(dp(3), dp(3), dp(3), dp(3))
@@ -128,33 +141,64 @@ class MainActivity : Activity() {
             setBackgroundColor(Color.WHITE)
         }
 
+        // 名前＋カウントエリア（パステル色背景）
+        val topSection = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(PASTEL_COLORS[colorIndices[index]])
+        }
+        topSections.add(topSection)
+
+        // 名前行（テキスト＋☒ボタン）
+        val nameRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+
         val nameView = TextView(this).apply {
             text = names[index]
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(Color.parseColor("#1976D2"))
-            gravity = Gravity.CENTER
+            setGravity(Gravity.CENTER)
             setPadding(dp(4), dp(3), dp(4), dp(3))
-            background = GradientDrawable().apply { setColor(PASTEL_COLORS[colorIndices[index]]) }
             setOnClickListener { showEditDialog(index) }
             setOnLongClickListener { showColorDialog(index); true }
         }
         nameViews.add(nameView)
-        card.addView(nameView, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
+        val deleteBtn = Button(this).apply {
+            text = "☒"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setTextColor(Color.parseColor("#90A4AE"))
+            setPadding(0, 0, 0, 0)
+            background = GradientDrawable().apply { setColor(Color.TRANSPARENT) }
+            setOnClickListener { confirmDelete(index) }
+        }
+
+        nameRow.addView(nameView,
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        nameRow.addView(deleteBtn,
+            LinearLayout.LayoutParams(dp(32), dp(32)))
+        topSection.addView(nameRow,
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT))
+
+        // カウント表示
         val countView = TextView(this).apply {
             text = counts[index].toString()
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 40f)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(Color.parseColor("#1976D2"))
-            gravity = Gravity.CENTER
+            setGravity(Gravity.CENTER)
             setPadding(0, dp(2), 0, dp(2))
         }
         countViews.add(countView)
-        card.addView(countView, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        topSection.addView(countView,
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT))
 
+        card.addView(topSection,
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT))
+
+        // ＋／－／× ボタン
         val btnLayout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         val h = dp(36)
 
@@ -181,10 +225,71 @@ class MainActivity : Activity() {
             counts[index] = 0; countView.text = "0"
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h))
 
-        card.addView(btnLayout, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        card.addView(btnLayout,
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT))
 
         return card
+    }
+
+    private fun confirmDelete(index: Int) {
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("削除")
+            .setMessage("「${names[index]}」を削除しますか？")
+            .setPositiveButton("削除") { _, _ ->
+                counts.removeAt(index)
+                names.removeAt(index)
+                colorIndices.removeAt(index)
+                totalCounters--
+
+                val editor = prefs.edit()
+                editor.putInt("counter_count", totalCounters)
+                for (i in 0 until totalCounters) {
+                    editor.putString("name_$i", names[i])
+                    editor.putInt("color_$i", colorIndices[i])
+                }
+                editor.remove("name_$totalCounters")
+                editor.remove("color_$totalCounters")
+                editor.apply()
+
+                rebuildGrid()
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
+    }
+
+    private fun showAllResetDialog() {
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("全リセット")
+            .setMessage("デフォルト状態に戻します。\n追加したカウンターは削除され、カウントも0になります。")
+            .setPositiveButton("リセット") { _, _ ->
+                val editor = prefs.edit()
+                for (i in 0 until totalCounters) {
+                    editor.remove("name_$i")
+                    editor.remove("color_$i")
+                }
+                editor.putInt("counter_count", 6)
+                editor.apply()
+
+                counts.clear(); names.clear(); colorIndices.clear()
+                totalCounters = 6
+                for (i in 0 until 6) {
+                    counts.add(0)
+                    names.add(DEFAULT_NAMES[i])
+                    colorIndices.add(0)
+                }
+                rebuildGrid()
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
+    }
+
+    private fun rebuildGrid() {
+        gridContainer.removeAllViews()
+        nameViews.clear()
+        countViews.clear()
+        topSections.clear()
+        for (i in 0 until totalCounters) appendCard(i)
     }
 
     private fun showColorDialog(index: Int) {
@@ -192,10 +297,8 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(8), dp(16), dp(8))
         }
-
         val dialogHolder = arrayOfNulls<AlertDialog>(1)
 
-        // 2行×4列のカラースウォッチ
         for (row in 0..1) {
             val rowLayout = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -215,8 +318,7 @@ class MainActivity : Activity() {
                     }
                     setOnClickListener {
                         colorIndices[index] = ci
-                        nameViews[index].background =
-                            GradientDrawable().apply { setColor(PASTEL_COLORS[ci]) }
+                        topSections[index].setBackgroundColor(PASTEL_COLORS[ci])
                         prefs.edit().putInt("color_$index", ci).apply()
                         dialogHolder[0]?.dismiss()
                     }
@@ -243,7 +345,6 @@ class MainActivity : Activity() {
             setBackgroundColor(Color.WHITE)
             setPadding(dp(8), dp(6), dp(8), dp(6))
         }
-
         val edit = EditText(this).apply {
             hint = "名前を入力して追加"
             inputType = InputType.TYPE_CLASS_TEXT
@@ -257,14 +358,11 @@ class MainActivity : Activity() {
                 setStroke(dp(2), Color.parseColor("#1976D2"))
             }
         }
-
         addBtn.setOnClickListener {
             val name = edit.text.toString().trim()
             if (name.isNotEmpty()) {
                 val idx = totalCounters
-                counts.add(0)
-                names.add(name)
-                colorIndices.add(0)
+                counts.add(0); names.add(name); colorIndices.add(0)
                 prefs.edit()
                     .putString("name_$idx", name)
                     .putInt("counter_count", totalCounters + 1)
@@ -276,12 +374,10 @@ class MainActivity : Activity() {
                 scrollView.post { scrollView.fullScroll(ScrollView.FOCUS_DOWN) }
             }
         }
-
         layout.addView(edit, LinearLayout.LayoutParams(
             0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         layout.addView(addBtn, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-
         return layout
     }
 
@@ -293,7 +389,6 @@ class MainActivity : Activity() {
         }
         val wrap = LinearLayout(this).apply { setPadding(60, 20, 60, 20) }
         wrap.addView(edit)
-
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("名前を変更")
             .setView(wrap)
