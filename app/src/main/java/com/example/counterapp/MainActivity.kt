@@ -373,17 +373,31 @@ class MainActivity : Activity() {
     // ─── メニュー ───────────────────────────────────────────
 
     private fun showMenuPopup(anchor: View) {
-        val items = arrayOf("棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "マニュアル")
+        val items = arrayOf("棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "マニュアル")
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("メニュー")
             .setItems(items) { _, which ->
                 when (which) {
                     0 -> showBarChartDialog()
                     1 -> showPieChartDialog()
-                    2 -> showManualDialog()
+                    2 -> copyToClipboard()
+                    3 -> showManualDialog()
                 }
             }
             .setNegativeButton("キャンセル", null).show()
+    }
+
+    private fun copyToClipboard() {
+        val sb = StringBuilder()
+        sb.appendln("西川さんお寿司カウンター")
+        for (i in 0 until totalCounters) {
+            sb.appendln("${names[i]}：${counts[i]}皿")
+        }
+        val total = counts.sum()
+        sb.append("合計：${total}皿")
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        cm.setPrimaryClip(android.content.ClipData.newPlainText("sushi_count", sb.toString()))
+        Toast.makeText(this, "クリップボードにコピーしました", Toast.LENGTH_SHORT).show()
     }
 
     private fun showBarChartDialog() {
