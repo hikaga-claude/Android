@@ -579,19 +579,42 @@ class MainActivity : Activity() {
         }
     }
 
+    // 音声認識はカタカナや漢字で返ることがある → 両者をひらがなに正規化して比較
+    private val KANJI_YOMI = listOf(
+        "鮪" to "まぐろ", "烏賊" to "いか", "海老" to "えび", "蝦" to "えび",
+        "鰤" to "ぶり", "玉子" to "たまご", "卵" to "たまご", "鮭" to "さけ",
+        "鯛" to "たい", "鰹" to "かつお", "穴子" to "あなご", "蛸" to "たこ",
+        "赤身" to "あかみ", "中トロ" to "ちゅうとろ", "大トロ" to "おおとろ",
+        "軍艦" to "ぐんかん", "納豆" to "なっとう", "帆立" to "ほたて",
+        "鮎" to "あゆ", "鯵" to "あじ", "鰯" to "いわし", "秋刀魚" to "さんま",
+        "鰆" to "さわら", "鱈" to "たら", "河豚" to "ふぐ", "鯖" to "さば"
+    )
+
+    private fun normalizeToHiragana(text: String): String {
+        var s = text
+        for ((kanji, yomi) in KANJI_YOMI) s = s.replace(kanji, yomi)
+        // 全角カタカナ → ひらがな (ァ=U+30A1 → ぁ=U+3041, 差=0x60)
+        s = s.map { c ->
+            if (c in '\u30A1'..'\u30F3') (c.toInt() - 0x60).toChar() else c
+        }.joinToString("")
+        return s
+    }
+
     private fun parseVoiceCommand(text: String) {
+        val normalized = normalizeToHiragana(text)
         var anyMatch = false
-        var remaining = text
+        var remaining = normalized
         for (i in 0 until totalCounters) {
-            if (remaining.contains(names[i])) {
-                val afterName = remaining.substringAfter(names[i])
+            val normalizedName = normalizeToHiragana(names[i])
+            if (remaining.contains(normalizedName)) {
+                val afterName = remaining.substringAfter(normalizedName)
                 val n = extractNumber(afterName)
                 if (n > 0) {
                     counts[i] += n
                     countViews[i].text = counts[i].toString()
                     anyMatch = true
                 }
-                remaining = remaining.replace(names[i], "")
+                remaining = remaining.replace(normalizedName, "")
             }
         }
         if (!anyMatch) {
