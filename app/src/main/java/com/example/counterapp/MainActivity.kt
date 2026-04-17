@@ -224,7 +224,7 @@ class MainActivity : Activity() {
         val deleteBtn = Button(this).apply {
             text = "☒"
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
-            setTextColor(Color.parseColor("#90A4AE"))
+            setTextColor(Color.WHITE)
             setPadding(0, 0, 0, 0)
             background = GradientDrawable().apply { setColor(Color.TRANSPARENT) }
             setOnClickListener { confirmDelete(index) }
