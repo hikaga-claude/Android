@@ -67,6 +67,7 @@ class MainActivity : Activity() {
     private var cardWidth = 0
     private var draggingIndex = -1
     private val REQUEST_SPEECH = 1001
+    private var unit = "皿"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,6 +75,7 @@ class MainActivity : Activity() {
 
         prefs = getSharedPreferences("sushi_prefs", Context.MODE_PRIVATE)
         totalCounters = prefs.getInt("counter_count", 6)
+        unit = prefs.getString("unit", "皿") ?: "皿"
 
         for (i in 0 until totalCounters) {
             counts.add(savedInstanceState?.getInt("count_$i", 0) ?: 0)
@@ -374,7 +376,7 @@ class MainActivity : Activity() {
     // ─── メニュー ───────────────────────────────────────────
 
     private fun showMenuPopup(anchor: View) {
-        val items = arrayOf("棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "マニュアル")
+        val items = arrayOf("棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "マニュアル")
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("メニュー")
             .setItems(items) { _, which ->
@@ -382,7 +384,29 @@ class MainActivity : Activity() {
                     0 -> showBarChartDialog()
                     1 -> showPieChartDialog()
                     2 -> copyToClipboard()
-                    3 -> showManualDialog()
+                    3 -> showUnitEditDialog()
+                    4 -> showManualDialog()
+                }
+            }
+            .setNegativeButton("キャンセル", null).show()
+    }
+
+    private fun showUnitEditDialog() {
+        val edit = EditText(this).apply {
+            setText(unit)
+            inputType = InputType.TYPE_CLASS_TEXT
+            selectAll()
+        }
+        val wrap = LinearLayout(this).apply { setPadding(60, 20, 60, 20) }
+        wrap.addView(edit)
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("単位を変更")
+            .setView(wrap)
+            .setPositiveButton("変更") { _, _ ->
+                val u = edit.text.toString()
+                if (u.isNotEmpty()) {
+                    unit = u
+                    prefs.edit().putString("unit", u).apply()
                 }
             }
             .setNegativeButton("キャンセル", null).show()
@@ -392,10 +416,10 @@ class MainActivity : Activity() {
         val sb = StringBuilder()
         sb.appendln("西川さんお寿司カウンター")
         for (i in 0 until totalCounters) {
-            sb.appendln("${names[i]}：${counts[i]}皿")
+            sb.appendln("${names[i]}：${counts[i]}$unit")
         }
         val total = counts.sum()
-        sb.append("合計：${total}皿")
+        sb.append("合計：${total}$unit")
         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
         cm.setPrimaryClip(android.content.ClipData.newPlainText("sushi_count", sb.toString()))
         Toast.makeText(this, "クリップボードにコピーしました", Toast.LENGTH_SHORT).show()
@@ -808,7 +832,7 @@ class MainActivity : Activity() {
                 paint.color = color
                 canvas.drawRect(dp(16).toFloat(), (ly + dp(4)).toFloat(),
                     dp(32).toFloat(), (ly + dp(22)).toFloat(), paint)
-                canvas.drawText("$name  $count 皿",
+                canvas.drawText("$name  $count $unit",
                     dp(40).toFloat(), (ly + dp(20)).toFloat(), legPaint)
                 ly += legH
             }
