@@ -365,7 +365,7 @@ class MainActivity : Activity() {
                 for (i in 0 until totalCounters) {
                     editor.remove("name_$i").remove("color_$i")
                 }
-                editor.putInt("counter_count", 6).remove("app_title").apply()
+                editor.putInt("counter_count", 6).remove("app_title").remove("unit").apply()
                 counts.clear(); names.clear(); colorIndices.clear()
                 totalCounters = 6
                 for (i in 0 until 6) {
@@ -373,7 +373,8 @@ class MainActivity : Activity() {
                     colorIndices.add(DEFAULT_COLOR_INDICES[i])
                 }
                 appTitle = "西川さんお寿司カウンター"
-                titleView.text = appTitle
+                titleView.text = "西川さんお寿司カウンター"
+                unit = "皿"
                 rebuildGrid()
             }
             .setNegativeButton("キャンセル", null).show()
