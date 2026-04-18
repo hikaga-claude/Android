@@ -416,7 +416,7 @@ class MainActivity : Activity() {
     // ─── メニュー ───────────────────────────────────────────
 
     private fun showMenuPopup(anchor: View) {
-        val items = arrayOf("テーマ変更（${PALETTE_NAMES[activePaletteIndex]}）", "棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "マニュアル")
+        val items = arrayOf("テーマ変更（${PALETTE_NAMES[activePaletteIndex]}）", "棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "マニュアル", "更新履歴")
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("メニュー")
             .setItems(items) { _, which ->
@@ -427,6 +427,7 @@ class MainActivity : Activity() {
                     3 -> copyToClipboard()
                     4 -> showUnitEditDialog()
                     5 -> showManualDialog()
+                    6 -> showChangelogDialog()
                 }
             }
             .setNegativeButton("キャンセル", null).show()
@@ -600,6 +601,23 @@ class MainActivity : Activity() {
                 "■ テーマ変更\nメニュー →「テーマ変更」をタップ\n7種のカラーパレットから選択\n\n" +
                 "■ カラーの個別編集（マイカラーのみ）\nネタ名を長押し → 色選択で色を長押し\nRGBスライダーで自由に色を設定できます\n※パステル〜ピンクのパレットは読み取り専用です\n\n" +
                 "■ マイカラーへの一括コピー\nネタ名を長押し → 色選択の「別パレットから一括コピー」\nお好みのパレットをベースにカスタマイズできます"
+            )
+            .setNegativeButton("閉じる", null).show()
+    }
+
+    private fun showChangelogDialog() {
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("更新履歴")
+            .setMessage(
+                "■ v1.00  2026年4月18日\n" +
+                "・正式リリース\n" +
+                "・カウンター追加・削除・並べ替え\n" +
+                "・音声入力（かな/漢字/カタカナ対応）\n" +
+                "・カラーパレット7種（テーマ切り替え）\n" +
+                "・マイカラー：RGBエディタ＋他パレットから一括コピー\n" +
+                "・棒グラフ・円グラフ（画像クリップボードコピー対応）\n" +
+                "・タイトル・単位のカスタマイズ\n" +
+                "・全リセット機能"
             )
             .setNegativeButton("閉じる", null).show()
     }
