@@ -47,25 +47,25 @@ class MainActivity : Activity() {
         Color.parseColor("#F06292"), Color.parseColor("#CE93D8"), Color.parseColor("#80CBC4"), Color.parseColor("#FFD54F")
     )
     private val PALETTE_BLUE = intArrayOf(
-        Color.parseColor("#E3F2FD"), Color.parseColor("#BBDEFB"), Color.parseColor("#90CAF9"), Color.parseColor("#64B5F6"),
-        Color.parseColor("#42A5F5"), Color.parseColor("#2196F3"), Color.parseColor("#1E88E5"), Color.parseColor("#1976D2"),
-        Color.parseColor("#1565C0"), Color.parseColor("#0D47A1"), Color.parseColor("#82B1FF"), Color.parseColor("#448AFF"),
-        Color.parseColor("#B3E5FC"), Color.parseColor("#81D4FA"), Color.parseColor("#4FC3F7"), Color.parseColor("#29B6F6"),
-        Color.parseColor("#283593"), Color.parseColor("#303F9F"), Color.parseColor("#5C6BC0"), Color.parseColor("#7986CB")
+        Color.parseColor("#E3F2FD"), Color.parseColor("#B3E5FC"), Color.parseColor("#BBDEFB"), Color.parseColor("#90CAF9"),
+        Color.parseColor("#81D4FA"), Color.parseColor("#64B5F6"), Color.parseColor("#4FC3F7"), Color.parseColor("#42A5F5"),
+        Color.parseColor("#29B6F6"), Color.parseColor("#2196F3"), Color.parseColor("#1E88E5"), Color.parseColor("#039BE5"),
+        Color.parseColor("#1976D2"), Color.parseColor("#0288D1"), Color.parseColor("#1565C0"), Color.parseColor("#7986CB"),
+        Color.parseColor("#5C6BC0"), Color.parseColor("#3949AB"), Color.parseColor("#0D47A1"), Color.parseColor("#283593")
     )
     private val PALETTE_GREEN = intArrayOf(
-        Color.parseColor("#E8F5E9"), Color.parseColor("#C8E6C9"), Color.parseColor("#A5D6A7"), Color.parseColor("#81C784"),
-        Color.parseColor("#66BB6A"), Color.parseColor("#4CAF50"), Color.parseColor("#43A047"), Color.parseColor("#388E3C"),
-        Color.parseColor("#2E7D32"), Color.parseColor("#1B5E20"), Color.parseColor("#B9F6CA"), Color.parseColor("#69F0AE"),
-        Color.parseColor("#CCFF90"), Color.parseColor("#B2FF59"), Color.parseColor("#AED581"), Color.parseColor("#9CCC65"),
-        Color.parseColor("#558B2F"), Color.parseColor("#33691E"), Color.parseColor("#7CB342"), Color.parseColor("#8D6E63")
+        Color.parseColor("#E8F5E9"), Color.parseColor("#CCFF90"), Color.parseColor("#C8E6C9"), Color.parseColor("#B9F6CA"),
+        Color.parseColor("#B2FF59"), Color.parseColor("#A5D6A7"), Color.parseColor("#AED581"), Color.parseColor("#81C784"),
+        Color.parseColor("#9CCC65"), Color.parseColor("#69F0AE"), Color.parseColor("#66BB6A"), Color.parseColor("#7CB342"),
+        Color.parseColor("#4CAF50"), Color.parseColor("#43A047"), Color.parseColor("#388E3C"), Color.parseColor("#558B2F"),
+        Color.parseColor("#2E7D32"), Color.parseColor("#33691E"), Color.parseColor("#1B5E20"), Color.parseColor("#194D33")
     )
     private val PALETTE_PINK = intArrayOf(
-        Color.parseColor("#FCE4EC"), Color.parseColor("#F8BBD0"), Color.parseColor("#FFCDD2"), Color.parseColor("#FFD7E9"),
-        Color.parseColor("#F48FB1"), Color.parseColor("#F06292"), Color.parseColor("#EC407A"), Color.parseColor("#E91E63"),
-        Color.parseColor("#D81B60"), Color.parseColor("#C2185B"), Color.parseColor("#FF4081"), Color.parseColor("#FF80AB"),
-        Color.parseColor("#FF87B2"), Color.parseColor("#FFB3BA"), Color.parseColor("#FFADD2"), Color.parseColor("#FF6F91"),
-        Color.parseColor("#E8A0BF"), Color.parseColor("#CE93D8"), Color.parseColor("#BA68C8"), Color.parseColor("#AB47BC")
+        Color.parseColor("#FCE4EC"), Color.parseColor("#FFD7E9"), Color.parseColor("#FFCDD2"), Color.parseColor("#F8BBD0"),
+        Color.parseColor("#FFB3BA"), Color.parseColor("#FFADD2"), Color.parseColor("#FF80AB"), Color.parseColor("#FF87B2"),
+        Color.parseColor("#E8A0BF"), Color.parseColor("#F48FB1"), Color.parseColor("#FF6F91"), Color.parseColor("#FF4081"),
+        Color.parseColor("#F06292"), Color.parseColor("#EC407A"), Color.parseColor("#E91E63"), Color.parseColor("#D81B60"),
+        Color.parseColor("#C2185B"), Color.parseColor("#AD1457"), Color.parseColor("#880E4F"), Color.parseColor("#4A0028")
     )
     private val PALETTE_NAMES = arrayOf("パステル", "アース", "ビビッド", "ブルー", "グリーン", "ピンク", "マイカラー")
     private val PALETTE_DEFAULTS = arrayOf(
@@ -606,11 +606,45 @@ class MainActivity : Activity() {
     // ─── 色選択ダイアログ ─────────────────────────────────────
 
     private fun showColorDialog(index: Int) {
+        val isMyColor = activePaletteIndex == 6
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(8), dp(16), dp(8))
         }
         val dialogHolder = arrayOfNulls<AlertDialog>(1)
+
+        if (isMyColor) {
+            val copyBtn = Button(this).apply {
+                text = "📋 別パレットから一括コピー"
+                setTextColor(Color.parseColor("#1976D2"))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+                background = GradientDrawable().apply {
+                    setColor(Color.WHITE)
+                    setStroke(dp(1), Color.parseColor("#1976D2"))
+                    setCornerRadius(dp(4).toFloat())
+                }
+                setOnClickListener {
+                    val srcNames = PALETTE_NAMES.take(6).toTypedArray()
+                    AlertDialog.Builder(this@MainActivity, android.R.style.Theme_Material_Light_Dialog_Alert)
+                        .setTitle("コピー元を選択")
+                        .setItems(srcNames) { _, which ->
+                            val editor = prefs.edit()
+                            for (c in 0..19) {
+                                palettes[6][c] = palettes[which][c]
+                                editor.putInt("pal_6_$c", palettes[6][c])
+                            }
+                            editor.apply()
+                            dialogHolder[0]?.dismiss()
+                            showColorDialog(index)
+                        }
+                        .setNegativeButton("キャンセル", null).show()
+                }
+            }
+            container.addView(copyBtn, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
+                it.bottomMargin = dp(8)
+            })
+        }
 
         for (row in 0..4) {
             val rowLayout = LinearLayout(this).apply {
@@ -634,13 +668,15 @@ class MainActivity : Activity() {
                     prefs.edit().putInt("color_$index", ci).apply()
                     dialogHolder[0]?.dismiss()
                 }
-                swatch.setOnLongClickListener {
-                    showRGBEditor(activePaletteIndex, ci) {
-                        swatchBg.setColor(activeColor(ci))
-                        if (ci == colorIndices[index])
-                            topSections[index].setBackgroundColor(activeColor(ci))
+                if (isMyColor) {
+                    swatch.setOnLongClickListener {
+                        showRGBEditor(activePaletteIndex, ci) {
+                            swatchBg.setColor(activeColor(ci))
+                            if (ci == colorIndices[index])
+                                topSections[index].setBackgroundColor(activeColor(ci))
+                        }
+                        true
                     }
-                    true
                 }
                 rowLayout.addView(swatch,
                     LinearLayout.LayoutParams(dp(52), dp(52)).also {
@@ -650,9 +686,10 @@ class MainActivity : Activity() {
             container.addView(rowLayout)
         }
 
+        val title = if (isMyColor) "色を選択（長押しで色を編集）" else "色を選択（${PALETTE_NAMES[activePaletteIndex]}）"
         dialogHolder[0] = AlertDialog.Builder(
             this, android.R.style.Theme_Material_Light_Dialog_Alert)
-            .setTitle("色を選択（長押しで色を編集）")
+            .setTitle(title)
             .setView(container)
             .setNegativeButton("キャンセル", null).show()
     }
@@ -830,7 +867,7 @@ class MainActivity : Activity() {
         layout.addView(rowB, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
-            .setTitle("色を編集 — ${PALETTE_NAMES[paletteIdx]}")
+            .setTitle("色を編集（${PALETTE_NAMES[paletteIdx]}）")
             .setView(layout)
             .setPositiveButton("保存") { _, _ ->
                 val newColor = Color.rgb(r, g, b)
