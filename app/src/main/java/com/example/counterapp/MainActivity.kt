@@ -365,13 +365,15 @@ class MainActivity : Activity() {
                 for (i in 0 until totalCounters) {
                     editor.remove("name_$i").remove("color_$i")
                 }
-                editor.putInt("counter_count", 6).apply()
+                editor.putInt("counter_count", 6).remove("app_title").apply()
                 counts.clear(); names.clear(); colorIndices.clear()
                 totalCounters = 6
                 for (i in 0 until 6) {
                     counts.add(0); names.add(DEFAULT_NAMES[i])
                     colorIndices.add(DEFAULT_COLOR_INDICES[i])
                 }
+                appTitle = "西川さんお寿司カウンター"
+                titleView.text = appTitle
                 rebuildGrid()
             }
             .setNegativeButton("キャンセル", null).show()
