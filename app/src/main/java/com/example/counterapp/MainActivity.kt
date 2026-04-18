@@ -305,7 +305,7 @@ class MainActivity : Activity() {
                 android.view.DragEvent.ACTION_DROP -> {
                     card.alpha = 1.0f
                     val from = draggingIndex
-                    if (from >= 0 && from != index) swapCounters(from, index)
+                    if (from >= 0 && from != index) insertCounter(from, index)
                     true
                 }
                 android.view.DragEvent.ACTION_DRAG_ENDED -> {
@@ -318,14 +318,19 @@ class MainActivity : Activity() {
         return card
     }
 
-    private fun swapCounters(a: Int, b: Int) {
-        val tc = counts[a];        counts[a] = counts[b];        counts[b] = tc
-        val tn = names[a];         names[a] = names[b];          names[b] = tn
-        val tci = colorIndices[a]; colorIndices[a] = colorIndices[b]; colorIndices[b] = tci
-        prefs.edit()
-            .putString("name_$a", names[a]).putString("name_$b", names[b])
-            .putInt("color_$a", colorIndices[a]).putInt("color_$b", colorIndices[b])
-            .apply()
+    private fun insertCounter(from: Int, to: Int) {
+        val c  = counts.removeAt(from)
+        val n  = names.removeAt(from)
+        val ci = colorIndices.removeAt(from)
+        val insertAt = if (from < to) to - 1 else to
+        counts.add(insertAt, c)
+        names.add(insertAt, n)
+        colorIndices.add(insertAt, ci)
+        val editor = prefs.edit()
+        for (i in 0 until totalCounters) {
+            editor.putString("name_$i", names[i]).putInt("color_$i", colorIndices[i])
+        }
+        editor.apply()
         rebuildGrid()
     }
 
