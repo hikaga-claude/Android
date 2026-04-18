@@ -586,7 +586,7 @@ class MainActivity : Activity() {
 
     private fun showManualDialog() {
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
-            .setTitle("マニュアル")
+            .setTitle("マニュアル  v1.00+261804072439")
             .setMessage(
                 "■ タイトルの変更\nタイトルをタップ\n\n" +
                 "■ ネタ名の変更\nネタ名をタップ\n\n" +
@@ -598,7 +598,8 @@ class MainActivity : Activity() {
                 "■ クリップボードにコピー\nメニュー →「クリップボードにコピー」をタップ\n全カウントをテキスト形式でコピーします\n\n" +
                 "■ 単位の変更\nメニュー →「単位を変更」をタップ\n\n" +
                 "■ テーマ変更\nメニュー →「テーマ変更」をタップ\n7種のカラーパレットから選択\n\n" +
-                "■ カラーの個別編集\nネタ名を長押し → 色選択で色を長押し\nRGBスライダーで自由に設定できます"
+                "■ カラーの個別編集（マイカラーのみ）\nネタ名を長押し → 色選択で色を長押し\nRGBスライダーで自由に色を設定できます\n※パステル〜ピンクのパレットは読み取り専用です\n\n" +
+                "■ マイカラーへの一括コピー\nネタ名を長押し → 色選択の「別パレットから一括コピー」\nお好みのパレットをベースにカスタマイズできます"
             )
             .setNegativeButton("閉じる", null).show()
     }
