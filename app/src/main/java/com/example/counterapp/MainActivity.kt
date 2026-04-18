@@ -22,36 +22,57 @@ import android.widget.*
 class MainActivity : Activity() {
 
     private val DEFAULT_NAMES = arrayOf("まぐろ", "いか", "えび", "ぶり", "たまご", "かずき")
-    // ダスティローズ／ラベンダー／オーキッド／ペリウィンクル／モーブ／スレートブルー
     private val DEFAULT_COLOR_INDICES = intArrayOf(14, 16, 19, 18, 15, 4)
 
-    private val PASTEL_COLORS = intArrayOf(
-        // アース系
-        Color.parseColor("#C8B89A"),
-        Color.parseColor("#D4A882"),
-        Color.parseColor("#C4906C"),
-        Color.parseColor("#A8A87C"),
-        // ブルー系
-        Color.parseColor("#8CAAC8"),
-        Color.parseColor("#7090B0"),
-        Color.parseColor("#94B0C8"),
-        Color.parseColor("#607890"),
-        // グリーン系
-        Color.parseColor("#90B498"),
-        Color.parseColor("#789870"),
-        Color.parseColor("#A4C0A0"),
-        Color.parseColor("#7A9A6C"),
-        // イエロー・ピンク系
-        Color.parseColor("#C8B870"),
-        Color.parseColor("#D0C468"),
-        Color.parseColor("#C49498"),
-        Color.parseColor("#B88090"),
-        // パープル系
-        Color.parseColor("#A890B8"),
-        Color.parseColor("#9480A8"),
-        Color.parseColor("#B4A0C4"),
-        Color.parseColor("#C0A0B4")
+    // ─── カラーパレット定義（各20色）───────────────────────────
+    private val PALETTE_PASTEL = intArrayOf(
+        Color.parseColor("#FFCDD2"), Color.parseColor("#F8BBD0"), Color.parseColor("#FFADD2"), Color.parseColor("#FFB3C1"),
+        Color.parseColor("#E1BEE7"), Color.parseColor("#D1C4E9"), Color.parseColor("#C5CAE9"), Color.parseColor("#D4C5E2"),
+        Color.parseColor("#BBDEFB"), Color.parseColor("#B3E5FC"), Color.parseColor("#B2EBF2"), Color.parseColor("#B2DFDB"),
+        Color.parseColor("#C8E6C9"), Color.parseColor("#DCEDC8"), Color.parseColor("#FFF9C4"), Color.parseColor("#FFE0B2"),
+        Color.parseColor("#FFCCBC"), Color.parseColor("#D7CCC8"), Color.parseColor("#CFD8DC"), Color.parseColor("#F5F5F5")
     )
+    private val PALETTE_EARTH = intArrayOf(
+        Color.parseColor("#C8B89A"), Color.parseColor("#D4A882"), Color.parseColor("#C4906C"), Color.parseColor("#A8A87C"),
+        Color.parseColor("#8CAAC8"), Color.parseColor("#7090B0"), Color.parseColor("#94B0C8"), Color.parseColor("#607890"),
+        Color.parseColor("#90B498"), Color.parseColor("#789870"), Color.parseColor("#A4C0A0"), Color.parseColor("#7A9A6C"),
+        Color.parseColor("#C8B870"), Color.parseColor("#D0C468"), Color.parseColor("#C49498"), Color.parseColor("#B88090"),
+        Color.parseColor("#A890B8"), Color.parseColor("#9480A8"), Color.parseColor("#B4A0C4"), Color.parseColor("#C0A0B4")
+    )
+    private val PALETTE_VIVID = intArrayOf(
+        Color.parseColor("#EF5350"), Color.parseColor("#E91E63"), Color.parseColor("#FF4081"), Color.parseColor("#FF8A65"),
+        Color.parseColor("#AB47BC"), Color.parseColor("#7E57C2"), Color.parseColor("#5C6BC0"), Color.parseColor("#2196F3"),
+        Color.parseColor("#00BCD4"), Color.parseColor("#26A69A"), Color.parseColor("#4CAF50"), Color.parseColor("#8BC34A"),
+        Color.parseColor("#CDDC39"), Color.parseColor("#FFC107"), Color.parseColor("#FF9800"), Color.parseColor("#FF5722"),
+        Color.parseColor("#F06292"), Color.parseColor("#CE93D8"), Color.parseColor("#80CBC4"), Color.parseColor("#FFD54F")
+    )
+    private val PALETTE_BLUE = intArrayOf(
+        Color.parseColor("#E3F2FD"), Color.parseColor("#BBDEFB"), Color.parseColor("#90CAF9"), Color.parseColor("#64B5F6"),
+        Color.parseColor("#42A5F5"), Color.parseColor("#2196F3"), Color.parseColor("#1E88E5"), Color.parseColor("#1976D2"),
+        Color.parseColor("#1565C0"), Color.parseColor("#0D47A1"), Color.parseColor("#82B1FF"), Color.parseColor("#448AFF"),
+        Color.parseColor("#B3E5FC"), Color.parseColor("#81D4FA"), Color.parseColor("#4FC3F7"), Color.parseColor("#29B6F6"),
+        Color.parseColor("#283593"), Color.parseColor("#303F9F"), Color.parseColor("#5C6BC0"), Color.parseColor("#7986CB")
+    )
+    private val PALETTE_GREEN = intArrayOf(
+        Color.parseColor("#E8F5E9"), Color.parseColor("#C8E6C9"), Color.parseColor("#A5D6A7"), Color.parseColor("#81C784"),
+        Color.parseColor("#66BB6A"), Color.parseColor("#4CAF50"), Color.parseColor("#43A047"), Color.parseColor("#388E3C"),
+        Color.parseColor("#2E7D32"), Color.parseColor("#1B5E20"), Color.parseColor("#B9F6CA"), Color.parseColor("#69F0AE"),
+        Color.parseColor("#CCFF90"), Color.parseColor("#B2FF59"), Color.parseColor("#AED581"), Color.parseColor("#9CCC65"),
+        Color.parseColor("#558B2F"), Color.parseColor("#33691E"), Color.parseColor("#7CB342"), Color.parseColor("#8D6E63")
+    )
+    private val PALETTE_PINK = intArrayOf(
+        Color.parseColor("#FCE4EC"), Color.parseColor("#F8BBD0"), Color.parseColor("#FFCDD2"), Color.parseColor("#FFD7E9"),
+        Color.parseColor("#F48FB1"), Color.parseColor("#F06292"), Color.parseColor("#EC407A"), Color.parseColor("#E91E63"),
+        Color.parseColor("#D81B60"), Color.parseColor("#C2185B"), Color.parseColor("#FF4081"), Color.parseColor("#FF80AB"),
+        Color.parseColor("#FF87B2"), Color.parseColor("#FFB3BA"), Color.parseColor("#FFADD2"), Color.parseColor("#FF6F91"),
+        Color.parseColor("#E8A0BF"), Color.parseColor("#CE93D8"), Color.parseColor("#BA68C8"), Color.parseColor("#AB47BC")
+    )
+    private val PALETTE_NAMES = arrayOf("パステル", "アース", "ビビッド", "ブルー", "グリーン", "ピンク", "マイカラー")
+    private val PALETTE_DEFAULTS = arrayOf(
+        PALETTE_PASTEL, PALETTE_EARTH, PALETTE_VIVID, PALETTE_BLUE, PALETTE_GREEN, PALETTE_PINK, PALETTE_PASTEL
+    )
+    private lateinit var palettes: Array<IntArray>
+    private var activePaletteIndex = 1
 
     private val counts       = mutableListOf<Int>()
     private val names        = mutableListOf<String>()
@@ -79,6 +100,8 @@ class MainActivity : Activity() {
         totalCounters = prefs.getInt("counter_count", 6)
         unit = prefs.getString("unit", "皿") ?: "皿"
         appTitle = prefs.getString("app_title", "西川さんお寿司カウンター") ?: "西川さんお寿司カウンター"
+        activePaletteIndex = prefs.getInt("active_palette", 1)
+        palettes = Array(7) { p -> IntArray(20) { c -> prefs.getInt("pal_${p}_${c}", PALETTE_DEFAULTS[p][c]) } }
 
         for (i in 0 until totalCounters) {
             counts.add(savedInstanceState?.getInt("count_$i", 0) ?: 0)
@@ -94,6 +117,8 @@ class MainActivity : Activity() {
 
     private fun dp(v: Int) = TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_DIP, v.toFloat(), resources.displayMetrics).toInt()
+
+    private fun activeColor(i: Int) = palettes[activePaletteIndex][i]
 
     private fun buildUI(): LinearLayout {
         val root = LinearLayout(this).apply {
@@ -210,7 +235,7 @@ class MainActivity : Activity() {
 
         val topSection = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(PASTEL_COLORS[colorIndices[index]])
+            setBackgroundColor(activeColor(colorIndices[index]))
         }
         topSections.add(topSection)
 
@@ -362,10 +387,10 @@ class MainActivity : Activity() {
             .setMessage("デフォルト状態に戻します。\n追加したカウンターは削除され、カウントも0になります。")
             .setPositiveButton("リセット") { _, _ ->
                 val editor = prefs.edit()
-                for (i in 0 until totalCounters) {
-                    editor.remove("name_$i").remove("color_$i")
-                }
-                editor.putInt("counter_count", 6).remove("app_title").remove("unit").apply()
+                for (i in 0 until totalCounters) editor.remove("name_$i").remove("color_$i")
+                editor.putInt("counter_count", 6).remove("app_title").remove("unit").remove("active_palette")
+                for (p in 0 until 7) for (c in 0 until 20) editor.remove("pal_${p}_${c}")
+                editor.apply()
                 counts.clear(); names.clear(); colorIndices.clear()
                 totalCounters = 6
                 for (i in 0 until 6) {
@@ -375,6 +400,8 @@ class MainActivity : Activity() {
                 appTitle = "西川さんお寿司カウンター"
                 titleView.text = "西川さんお寿司カウンター"
                 unit = "皿"
+                activePaletteIndex = 1
+                palettes = Array(7) { p -> IntArray(20) { c -> PALETTE_DEFAULTS[p][c] } }
                 rebuildGrid()
             }
             .setNegativeButton("キャンセル", null).show()
@@ -389,16 +416,17 @@ class MainActivity : Activity() {
     // ─── メニュー ───────────────────────────────────────────
 
     private fun showMenuPopup(anchor: View) {
-        val items = arrayOf("棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "マニュアル")
+        val items = arrayOf("テーマ変更（${PALETTE_NAMES[activePaletteIndex]}）", "棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "マニュアル")
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("メニュー")
             .setItems(items) { _, which ->
                 when (which) {
-                    0 -> showBarChartDialog()
-                    1 -> showPieChartDialog()
-                    2 -> copyToClipboard()
-                    3 -> showUnitEditDialog()
-                    4 -> showManualDialog()
+                    0 -> showThemeDialog()
+                    1 -> showBarChartDialog()
+                    2 -> showPieChartDialog()
+                    3 -> copyToClipboard()
+                    4 -> showUnitEditDialog()
+                    5 -> showManualDialog()
                 }
             }
             .setNegativeButton("キャンセル", null).show()
@@ -449,7 +477,7 @@ class MainActivity : Activity() {
 
     private fun copyToClipboard() {
         val sb = StringBuilder()
-        sb.appendln("西川さんお寿司カウンター")
+        sb.appendln(appTitle)
         for (i in 0 until totalCounters) {
             sb.appendln("${names[i]}：${counts[i]}$unit")
         }
@@ -462,7 +490,7 @@ class MainActivity : Activity() {
 
     private fun showBarChartDialog() {
         val items = (0 until totalCounters)
-            .map { Triple(names[it], counts[it], PASTEL_COLORS[colorIndices[it]]) }
+            .map { Triple(names[it], counts[it], activeColor(colorIndices[it])) }
             .sortedByDescending { it.second }
         val chartView = BarChartView(this, items)
         val sv = ScrollView(this).apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
@@ -483,7 +511,7 @@ class MainActivity : Activity() {
 
     private fun showPieChartDialog() {
         val items = (0 until totalCounters)
-            .map { Triple(names[it], counts[it], PASTEL_COLORS[colorIndices[it]]) }
+            .map { Triple(names[it], counts[it], activeColor(colorIndices[it])) }
             .filter { it.second > 0 }
             .sortedByDescending { it.second }
         val wrapper = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -568,7 +596,9 @@ class MainActivity : Activity() {
                 "■ 全リセット\n下部「全リセット」ボタンをタップ\nデフォルト6種類に戻り、カウントが0になります\n\n" +
                 "■ 音声入力\nタイトル右の 🎤 をタップ\n例：「いか いち まぐろ さん」\n\n" +
                 "■ クリップボードにコピー\nメニュー →「クリップボードにコピー」をタップ\n全カウントをテキスト形式でコピーします\n\n" +
-                "■ 単位の変更\nメニュー →「単位を変更」をタップ"
+                "■ 単位の変更\nメニュー →「単位を変更」をタップ\n\n" +
+                "■ テーマ変更\nメニュー →「テーマ変更」をタップ\n7種のカラーパレットから選択\n\n" +
+                "■ カラーの個別編集\nネタ名を長押し → 色選択で色を長押し\nRGBスライダーで自由に設定できます"
             )
             .setNegativeButton("閉じる", null).show()
     }
@@ -590,21 +620,27 @@ class MainActivity : Activity() {
             for (col in 0..3) {
                 val ci = row * 4 + col
                 val isSelected = ci == colorIndices[index]
-                val swatch = View(this).apply {
-                    background = GradientDrawable().apply {
-                        setColor(PASTEL_COLORS[ci])
-                        setStroke(
-                            dp(if (isSelected) 4 else 2),
-                            if (isSelected) Color.parseColor("#1976D2") else Color.LTGRAY
-                        )
-                        setCornerRadius(dp(8).toFloat())
+                val swatchBg = GradientDrawable().apply {
+                    setColor(activeColor(ci))
+                    setStroke(dp(if (isSelected) 4 else 2),
+                        if (isSelected) Color.parseColor("#1976D2") else Color.LTGRAY)
+                    setCornerRadius(dp(8).toFloat())
+                }
+                val swatch = View(this)
+                swatch.background = swatchBg
+                swatch.setOnClickListener {
+                    colorIndices[index] = ci
+                    topSections[index].setBackgroundColor(activeColor(ci))
+                    prefs.edit().putInt("color_$index", ci).apply()
+                    dialogHolder[0]?.dismiss()
+                }
+                swatch.setOnLongClickListener {
+                    showRGBEditor(activePaletteIndex, ci) {
+                        swatchBg.setColor(activeColor(ci))
+                        if (ci == colorIndices[index])
+                            topSections[index].setBackgroundColor(activeColor(ci))
                     }
-                    setOnClickListener {
-                        colorIndices[index] = ci
-                        topSections[index].setBackgroundColor(PASTEL_COLORS[ci])
-                        prefs.edit().putInt("color_$index", ci).apply()
-                        dialogHolder[0]?.dismiss()
-                    }
+                    true
                 }
                 rowLayout.addView(swatch,
                     LinearLayout.LayoutParams(dp(52), dp(52)).also {
@@ -616,8 +652,192 @@ class MainActivity : Activity() {
 
         dialogHolder[0] = AlertDialog.Builder(
             this, android.R.style.Theme_Material_Light_Dialog_Alert)
-            .setTitle("色を選択（長押しで変更）")
+            .setTitle("色を選択（長押しで色を編集）")
             .setView(container)
+            .setNegativeButton("キャンセル", null).show()
+    }
+
+    // ─── テーマ選択ダイアログ ─────────────────────────────────
+
+    private fun showThemeDialog() {
+        val wrapper = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+        }
+        val dialogHolder = arrayOfNulls<AlertDialog>(1)
+
+        PALETTE_NAMES.forEachIndexed { idx, name ->
+            val isActive = idx == activePaletteIndex
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setGravity(Gravity.CENTER_VERTICAL)
+                setPadding(dp(10), dp(10), dp(10), dp(10))
+                if (isActive) {
+                    background = GradientDrawable().apply {
+                        setColor(Color.parseColor("#E3F2FD"))
+                        setStroke(dp(2), Color.parseColor("#1976D2"))
+                        setCornerRadius(dp(6).toFloat())
+                    }
+                }
+            }
+            // 5色サンプル (各行の代表色)
+            val swatchRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            for (si in intArrayOf(0, 4, 8, 12, 16)) {
+                val s = View(this)
+                s.background = GradientDrawable().apply {
+                    setColor(palettes[idx][si])
+                    setCornerRadius(dp(4).toFloat())
+                }
+                swatchRow.addView(s, LinearLayout.LayoutParams(dp(18), dp(18)).also {
+                    it.setMargins(dp(2), 0, dp(2), 0)
+                })
+            }
+            val nameView = TextView(this).apply {
+                text = name
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+                setTextColor(if (isActive) Color.parseColor("#1976D2") else Color.parseColor("#333333"))
+                setTypeface(typeface, if (isActive) Typeface.BOLD else Typeface.NORMAL)
+                setPadding(dp(12), 0, 0, 0)
+            }
+            row.addView(swatchRow, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            row.addView(nameView, LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            if (isActive) {
+                row.addView(TextView(this).apply {
+                    text = "✓"
+                    setTextColor(Color.parseColor("#1976D2"))
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                }, LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            }
+            row.setOnClickListener {
+                activePaletteIndex = idx
+                prefs.edit().putInt("active_palette", idx).apply()
+                rebuildGrid()
+                dialogHolder[0]?.dismiss()
+            }
+            wrapper.addView(row, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
+                it.bottomMargin = dp(4)
+            })
+        }
+
+        dialogHolder[0] = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("テーマ（カラーパレット）を選択")
+            .setView(wrapper)
+            .setNegativeButton("閉じる", null).show()
+    }
+
+    // ─── RGB カラーエディタ ───────────────────────────────────
+
+    private fun showRGBEditor(paletteIdx: Int, colorPos: Int, onSaved: () -> Unit) {
+        val initial = palettes[paletteIdx][colorPos]
+        var r = Color.red(initial)
+        var g = Color.green(initial)
+        var b = Color.blue(initial)
+
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(12), dp(16), dp(8))
+        }
+
+        val previewBg = GradientDrawable().apply {
+            setColor(Color.rgb(r, g, b))
+            setCornerRadius(dp(8).toFloat())
+        }
+        val preview = View(this)
+        preview.background = previewBg
+        layout.addView(preview, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(60)).also { it.bottomMargin = dp(16) })
+
+        var updating = false
+        fun refresh() { previewBg.setColor(Color.rgb(r, g, b)) }
+
+        // R行
+        val rowR = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setGravity(Gravity.CENTER_VERTICAL) }
+        val tvR = TextView(this).apply { text = "R"; setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f); setTextColor(Color.parseColor("#E53935")) }
+        val seekR = SeekBar(this).apply { max = 255; progress = r }
+        val editR = EditText(this).apply { setText(r.toString()); inputType = InputType.TYPE_CLASS_NUMBER; setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f) }
+        seekR.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                if (!fromUser || updating) return; updating = true; r = p; editR.setText(p.toString()); refresh(); updating = false
+            }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+        editR.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, st: Int, c: Int, af: Int) {}
+            override fun onTextChanged(s: CharSequence, st: Int, bc: Int, c: Int) {}
+            override fun afterTextChanged(s: android.text.Editable) {
+                if (updating) return; val v = s.toString().toIntOrNull()?.coerceIn(0, 255) ?: return
+                updating = true; r = v; seekR.progress = v; refresh(); updating = false
+            }
+        })
+        rowR.addView(tvR, LinearLayout.LayoutParams(dp(20), ViewGroup.LayoutParams.WRAP_CONTENT))
+        rowR.addView(seekR, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        rowR.addView(editR, LinearLayout.LayoutParams(dp(55), ViewGroup.LayoutParams.WRAP_CONTENT))
+        layout.addView(rowR, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also { it.bottomMargin = dp(8) })
+
+        // G行
+        val rowG = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setGravity(Gravity.CENTER_VERTICAL) }
+        val tvG = TextView(this).apply { text = "G"; setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f); setTextColor(Color.parseColor("#43A047")) }
+        val seekG = SeekBar(this).apply { max = 255; progress = g }
+        val editG = EditText(this).apply { setText(g.toString()); inputType = InputType.TYPE_CLASS_NUMBER; setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f) }
+        seekG.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                if (!fromUser || updating) return; updating = true; g = p; editG.setText(p.toString()); refresh(); updating = false
+            }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+        editG.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, st: Int, c: Int, af: Int) {}
+            override fun onTextChanged(s: CharSequence, st: Int, bc: Int, c: Int) {}
+            override fun afterTextChanged(s: android.text.Editable) {
+                if (updating) return; val v = s.toString().toIntOrNull()?.coerceIn(0, 255) ?: return
+                updating = true; g = v; seekG.progress = v; refresh(); updating = false
+            }
+        })
+        rowG.addView(tvG, LinearLayout.LayoutParams(dp(20), ViewGroup.LayoutParams.WRAP_CONTENT))
+        rowG.addView(seekG, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        rowG.addView(editG, LinearLayout.LayoutParams(dp(55), ViewGroup.LayoutParams.WRAP_CONTENT))
+        layout.addView(rowG, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also { it.bottomMargin = dp(8) })
+
+        // B行
+        val rowB = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setGravity(Gravity.CENTER_VERTICAL) }
+        val tvB = TextView(this).apply { text = "B"; setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f); setTextColor(Color.parseColor("#1976D2")) }
+        val seekB = SeekBar(this).apply { max = 255; progress = b }
+        val editB = EditText(this).apply { setText(b.toString()); inputType = InputType.TYPE_CLASS_NUMBER; setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f) }
+        seekB.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                if (!fromUser || updating) return; updating = true; b = p; editB.setText(p.toString()); refresh(); updating = false
+            }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+        editB.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, st: Int, c: Int, af: Int) {}
+            override fun onTextChanged(s: CharSequence, st: Int, bc: Int, c: Int) {}
+            override fun afterTextChanged(s: android.text.Editable) {
+                if (updating) return; val v = s.toString().toIntOrNull()?.coerceIn(0, 255) ?: return
+                updating = true; b = v; seekB.progress = v; refresh(); updating = false
+            }
+        })
+        rowB.addView(tvB, LinearLayout.LayoutParams(dp(20), ViewGroup.LayoutParams.WRAP_CONTENT))
+        rowB.addView(seekB, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        rowB.addView(editB, LinearLayout.LayoutParams(dp(55), ViewGroup.LayoutParams.WRAP_CONTENT))
+        layout.addView(rowB, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("色を編集 — ${PALETTE_NAMES[paletteIdx]}")
+            .setView(layout)
+            .setPositiveButton("保存") { _, _ ->
+                val newColor = Color.rgb(r, g, b)
+                palettes[paletteIdx][colorPos] = newColor
+                prefs.edit().putInt("pal_${paletteIdx}_${colorPos}", newColor).apply()
+                onSaved()
+            }
             .setNegativeButton("キャンセル", null).show()
     }
 
