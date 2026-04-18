@@ -68,6 +68,8 @@ class MainActivity : Activity() {
     private var draggingIndex = -1
     private val REQUEST_SPEECH = 1001
     private var unit = "皿"
+    private var appTitle = "西川さんお寿司カウンター"
+    private lateinit var titleView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +78,7 @@ class MainActivity : Activity() {
         prefs = getSharedPreferences("sushi_prefs", Context.MODE_PRIVATE)
         totalCounters = prefs.getInt("counter_count", 6)
         unit = prefs.getString("unit", "皿") ?: "皿"
+        appTitle = prefs.getString("app_title", "西川さんお寿司カウンター") ?: "西川さんお寿司カウンター"
 
         for (i in 0 until totalCounters) {
             counts.add(savedInstanceState?.getInt("count_$i", 0) ?: 0)
@@ -107,15 +110,17 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             setGravity(Gravity.CENTER_VERTICAL)
         }
-        titleBar.addView(TextView(this).apply {
-            text = "西川さんお寿司カウンター"
+        titleView = TextView(this).apply {
+            text = appTitle
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(Color.parseColor("#1976D2"))
             setGravity(Gravity.CENTER)
             maxLines = 1
             setPadding(dp(8), dp(8), dp(4), dp(8))
-        }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            setOnClickListener { showTitleEditDialog() }
+        }
+        titleBar.addView(titleView, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         val micBtn = Button(this).apply {
             text = "🎤"
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
@@ -391,6 +396,28 @@ class MainActivity : Activity() {
                     2 -> copyToClipboard()
                     3 -> showUnitEditDialog()
                     4 -> showManualDialog()
+                }
+            }
+            .setNegativeButton("キャンセル", null).show()
+    }
+
+    private fun showTitleEditDialog() {
+        val edit = EditText(this).apply {
+            setText(appTitle)
+            inputType = InputType.TYPE_CLASS_TEXT
+            selectAll()
+        }
+        val wrap = LinearLayout(this).apply { setPadding(60, 20, 60, 20) }
+        wrap.addView(edit)
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("タイトルを変更")
+            .setView(wrap)
+            .setPositiveButton("変更") { _, _ ->
+                val t = edit.text.toString().trim()
+                if (t.isNotEmpty()) {
+                    appTitle = t
+                    titleView.text = t
+                    prefs.edit().putString("app_title", t).apply()
                 }
             }
             .setNegativeButton("キャンセル", null).show()
