@@ -1411,8 +1411,16 @@ class MainActivity : Activity() {
             container.addView(rowLayout)
         }
 
+        val customTitle = TextView(this).apply {
+            text = "マイカラー編集（長押しで色を編集）"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            setTextColor(Color.parseColor("#212121"))
+            setTypeface(typeface, Typeface.BOLD)
+            maxLines = 1
+            setPadding(dp(20), dp(16), dp(20), dp(8))
+        }
         dialogHolder[0] = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
-            .setTitle("マイカラー編集")
+            .setCustomTitle(customTitle)
             .setView(container)
             .setNegativeButton("閉じる", null).show()
     }
