@@ -855,6 +855,7 @@ class MainActivity : Activity() {
                 val uri = contentResolver.insert(extUri, values)
                 if (uri != null) {
                     contentResolver.openOutputStream(uri)?.use { it.write(content.toByteArray(Charsets.UTF_8)) }
+                    android.widget.Toast.makeText(this, "ダウンロードフォルダに保存しました：$fileName", android.widget.Toast.LENGTH_LONG).show()
                     val share = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                         type = "application/json"
                         putExtra(android.content.Intent.EXTRA_STREAM, uri)
