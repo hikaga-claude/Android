@@ -690,20 +690,24 @@ class MainActivity : Activity() {
 
             val saveLabel = if (exists) "上書き" else "保存"
             val saveBtn = mkBtn(saveLabel, "#1976D2", true) {
-                val doSave = {
-                    saveToSlot(prefix, slot, withCounts)
-                    dialogHolder[0]?.dismiss()
-                    showSaveSlotDialog(withCounts)
+                val defaultName = java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.JAPAN).format(java.util.Date())
+                val edit = EditText(this).apply {
+                    setText(defaultName)
+                    inputType = InputType.TYPE_CLASS_TEXT
+                    selectAll()
                 }
-                if (exists) {
-                    AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
-                        .setTitle("上書き確認")
-                        .setMessage("スロット${slot + 1}「$savedTitle」に上書きしますか？")
-                        .setPositiveButton("上書き") { _, _ -> doSave() }
-                        .setNegativeButton("キャンセル", null).show()
-                } else {
-                    doSave()
-                }
+                val wrap = LinearLayout(this).apply { setPadding(dp(16), dp(8), dp(16), dp(8)) }
+                wrap.addView(edit)
+                AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+                    .setTitle("保存名を入力")
+                    .setView(wrap)
+                    .setPositiveButton(if (exists) "上書き" else "保存") { _, _ ->
+                        val saveName = edit.text.toString().trim().ifEmpty { defaultName }
+                        saveToSlot(prefix, slot, withCounts, saveName)
+                        dialogHolder[0]?.dismiss()
+                        showSaveSlotDialog(withCounts)
+                    }
+                    .setNegativeButton("キャンセル", null).show()
             }
             val loadBtn = mkBtn("呼出", "#388E3C", exists) {
                 AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
@@ -746,12 +750,13 @@ class MainActivity : Activity() {
             .setNegativeButton("閉じる", null).show()
     }
 
-    private fun saveToSlot(prefix: String, slot: Int, withCounts: Boolean) {
+    private fun saveToSlot(prefix: String, slot: Int, withCounts: Boolean, saveName: String) {
         val sdf = java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.JAPAN)
         val now = sdf.format(java.util.Date())
         val editor = prefs.edit()
         editor.putBoolean("${prefix}_${slot}_exists", true)
-        editor.putString("${prefix}_${slot}_title", appTitle)
+        editor.putString("${prefix}_${slot}_title", saveName)
+        editor.putString("${prefix}_${slot}_app_title", appTitle)
         editor.putString("${prefix}_${slot}_unit", unit)
         editor.putString("${prefix}_${slot}_saved_at", now)
         editor.putInt("${prefix}_${slot}_count", totalCounters)
@@ -770,7 +775,7 @@ class MainActivity : Activity() {
 
     private fun loadFromSlot(prefix: String, slot: Int, withCounts: Boolean) {
         val n = prefs.getInt("${prefix}_${slot}_count", 6)
-        appTitle = prefs.getString("${prefix}_${slot}_title", "西川さんお寿司カウンター") ?: "西川さんお寿司カウンター"
+        appTitle = prefs.getString("${prefix}_${slot}_app_title", "西川さんお寿司カウンター") ?: "西川さんお寿司カウンター"
         unit = prefs.getString("${prefix}_${slot}_unit", "皿") ?: "皿"
         activePaletteIndex = prefs.getInt("${prefix}_${slot}_palette", 1)
         palettes = Array(7) { p -> IntArray(20) { c ->
