@@ -701,7 +701,7 @@ class MainActivity : Activity() {
                         }
                         .setNegativeButton("キャンセル", null).show()
                 } else {
-                    val defaultName = java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.JAPAN).format(java.util.Date())
+                    val defaultName = appTitle + "_" + java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.JAPAN).format(java.util.Date())
                     val edit = EditText(this).apply {
                         setText(defaultName)
                         inputType = InputType.TYPE_CLASS_TEXT
