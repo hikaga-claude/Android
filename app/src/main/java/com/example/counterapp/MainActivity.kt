@@ -1336,6 +1336,50 @@ class MainActivity : Activity() {
             setPadding(dp(16), dp(8), dp(16), dp(8))
         }
         val dialogHolder = arrayOfNulls<AlertDialog>(1)
+        val swatchBgs = arrayOfNulls<GradientDrawable>(20)
+        var selectedCi = -1
+
+        fun updateBorders() {
+            for (i in 0..19) {
+                swatchBgs[i]?.setStroke(
+                    dp(if (i == selectedCi) 4 else 2),
+                    if (i == selectedCi) Color.parseColor("#1976D2") else Color.LTGRAY
+                )
+            }
+        }
+
+        // 別パレットから一括コピー
+        val copyBtn = Button(this).apply {
+            text = "📋 別パレットから一括コピー"
+            setTextColor(Color.parseColor("#1976D2"))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                setStroke(dp(1), Color.parseColor("#1976D2"))
+                setCornerRadius(dp(4).toFloat())
+            }
+            setOnClickListener {
+                val srcNames = PALETTE_NAMES.take(6).toTypedArray()
+                AlertDialog.Builder(this@MainActivity, android.R.style.Theme_Material_Light_Dialog_Alert)
+                    .setTitle("コピー元を選択")
+                    .setItems(srcNames) { _, which ->
+                        val editor = prefs.edit()
+                        for (c in 0..19) {
+                            palettes[6][c] = palettes[which][c]
+                            editor.putInt("pal_6_$c", palettes[6][c])
+                            swatchBgs[c]?.setColor(palettes[6][c])
+                        }
+                        editor.apply()
+                        selectedCi = -1
+                        updateBorders()
+                    }
+                    .setNegativeButton("キャンセル", null).show()
+            }
+        }
+        container.addView(copyBtn, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
+            it.bottomMargin = dp(8)
+        })
 
         for (row in 0..4) {
             val rowLayout = LinearLayout(this).apply {
@@ -1349,9 +1393,12 @@ class MainActivity : Activity() {
                     setStroke(dp(2), Color.LTGRAY)
                     setCornerRadius(dp(8).toFloat())
                 }
+                swatchBgs[ci] = swatchBg
                 val swatch = View(this)
                 swatch.background = swatchBg
                 swatch.setOnClickListener {
+                    selectedCi = ci
+                    updateBorders()
                     showRGBEditor(6, ci) {
                         swatchBg.setColor(palettes[6][ci])
                     }
