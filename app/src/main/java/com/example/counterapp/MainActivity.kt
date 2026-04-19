@@ -91,6 +91,9 @@ class MainActivity : Activity() {
     private var unit = "皿"
     private var appTitle = "西川さんお寿司カウンター"
     private lateinit var titleView: TextView
+    private var quickSaveFileIdx = -1
+    private var quickSaveSlotIdx = -1
+    private lateinit var quickSaveDestBtn: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,6 +105,8 @@ class MainActivity : Activity() {
         appTitle = prefs.getString("app_title", "西川さんお寿司カウンター") ?: "西川さんお寿司カウンター"
         activePaletteIndex = prefs.getInt("active_palette", 1)
         palettes = Array(7) { p -> IntArray(20) { c -> prefs.getInt("pal_${p}_${c}", PALETTE_DEFAULTS[p][c]) } }
+        quickSaveFileIdx = prefs.getInt("quick_save_file", -1)
+        quickSaveSlotIdx = prefs.getInt("quick_save_slot", -1)
 
         for (i in 0 until totalCounters) {
             counts.add(savedInstanceState?.getInt("count_$i", 0) ?: 0)
@@ -180,7 +185,33 @@ class MainActivity : Activity() {
         root.addView(scrollView, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
 
-        // 下部ボタンバー（全リセット ＋ メニュー）
+        // 下部ボタンバー（保存先設定・上書き保存 ＋ 全リセット・メニュー）
+        val quickBar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+
+        quickSaveDestBtn = Button(this).apply {
+            text = quickSaveDestLabel()
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            setTextColor(Color.parseColor("#555555"))
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                setStroke(dp(2), Color.parseColor("#888888"))
+            }
+            setOnClickListener { showQuickSavePicker() }
+        }
+        val quickExecBtn = Button(this).apply {
+            text = "上書き保存"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            setTextColor(Color.parseColor("#1976D2"))
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                setStroke(dp(2), Color.parseColor("#1976D2"))
+            }
+            setOnClickListener { doQuickSave() }
+        }
+        quickBar.addView(quickSaveDestBtn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        quickBar.addView(quickExecBtn,     LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        root.addView(quickBar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+
         val bottomBar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
 
         val resetBtn = Button(this).apply {
@@ -624,6 +655,137 @@ class MainActivity : Activity() {
                 "・全リセット機能"
             )
             .setNegativeButton("閉じる", null).show()
+    }
+
+    // ─── クイック上書き保存 ───────────────────────────────────
+
+    private fun quickSaveDestLabel(): String {
+        if (quickSaveFileIdx < 0 || quickSaveSlotIdx < 0) return "保存先設定（未設定）"
+        val fileName = prefs.getString("cnt_file_${quickSaveFileIdx}_name", "ファイル${quickSaveFileIdx + 1}") ?: "ファイル${quickSaveFileIdx + 1}"
+        return "保存先：$fileName / スロット${quickSaveSlotIdx + 1}"
+    }
+
+    private fun showQuickSavePicker() {
+        val wrapper = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(8), dp(4), dp(8), dp(4))
+        }
+        val dialogHolder = arrayOfNulls<AlertDialog>(1)
+        for (f in 0 until CNT_FILE_COUNT) {
+            val fileName = prefs.getString("cnt_file_${f}_name", "ファイル${f + 1}") ?: "ファイル${f + 1}"
+            val usedCount = (0 until CNT_SLOTS_PER_FILE).count { prefs.getBoolean("cnt_f${f}_${it}_exists", false) }
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setGravity(Gravity.CENTER_VERTICAL)
+                setPadding(dp(12), dp(12), dp(12), dp(12))
+                setOnClickListener {
+                    dialogHolder[0]?.dismiss()
+                    showQuickSaveSlotPicker(f)
+                }
+            }
+            row.addView(TextView(this).apply {
+                text = fileName
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+                setTextColor(Color.parseColor("#333333"))
+                setTypeface(typeface, Typeface.BOLD)
+            }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            row.addView(TextView(this).apply {
+                text = "$usedCount / $CNT_SLOTS_PER_FILE 件  ▶"
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                setTextColor(Color.parseColor("#888888"))
+            })
+            wrapper.addView(row)
+            if (f < CNT_FILE_COUNT - 1)
+                wrapper.addView(View(this).apply { setBackgroundColor(Color.parseColor("#EEEEEE")) },
+                    LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1))
+        }
+        val sv = ScrollView(this).apply { addView(wrapper) }
+        dialogHolder[0] = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("保存先ファイルを選択")
+            .setView(sv)
+            .setNegativeButton("キャンセル", null).show()
+    }
+
+    private fun showQuickSaveSlotPicker(fileIdx: Int) {
+        val fileName = prefs.getString("cnt_file_${fileIdx}_name", "ファイル${fileIdx + 1}") ?: "ファイル${fileIdx + 1}"
+        val wrapper = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(8), dp(4), dp(8), dp(4))
+        }
+        val dialogHolder = arrayOfNulls<AlertDialog>(1)
+        for (s in 0 until CNT_SLOTS_PER_FILE) {
+            val exists = prefs.getBoolean("cnt_f${fileIdx}_${s}_exists", false)
+            val slotName = prefs.getString("cnt_f${fileIdx}_${s}_title", "") ?: ""
+            val savedAt  = prefs.getString("cnt_f${fileIdx}_${s}_saved_at", "") ?: ""
+            val isSelected = fileIdx == quickSaveFileIdx && s == quickSaveSlotIdx
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(12), dp(10), dp(12), dp(10))
+                if (isSelected) background = GradientDrawable().apply {
+                    setColor(Color.parseColor("#E3F2FD"))
+                    setStroke(dp(2), Color.parseColor("#1976D2"))
+                    setCornerRadius(dp(4).toFloat())
+                }
+                setOnClickListener {
+                    quickSaveFileIdx = fileIdx
+                    quickSaveSlotIdx = s
+                    prefs.edit().putInt("quick_save_file", fileIdx).putInt("quick_save_slot", s).apply()
+                    quickSaveDestBtn.text = quickSaveDestLabel()
+                    dialogHolder[0]?.dismiss()
+                    Toast.makeText(this@MainActivity, "保存先を設定しました", Toast.LENGTH_SHORT).show()
+                }
+            }
+            row.addView(TextView(this).apply {
+                text = "スロット ${s + 1}" + if (isSelected) "  ✓" else ""
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+                setTextColor(if (isSelected) Color.parseColor("#1976D2") else Color.parseColor("#999999"))
+            })
+            row.addView(TextView(this).apply {
+                text = if (exists) slotName else "（空き）"
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                setTextColor(if (exists) Color.parseColor("#333333") else Color.LTGRAY)
+                setTypeface(typeface, if (isSelected) Typeface.BOLD else Typeface.NORMAL)
+            })
+            if (exists) row.addView(TextView(this).apply {
+                text = savedAt
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
+                setTextColor(Color.parseColor("#AAAAAA"))
+            })
+            wrapper.addView(row)
+            if (s < CNT_SLOTS_PER_FILE - 1)
+                wrapper.addView(View(this).apply { setBackgroundColor(Color.parseColor("#EEEEEE")) },
+                    LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1))
+        }
+        val sv = ScrollView(this).apply { addView(wrapper) }
+        dialogHolder[0] = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("$fileName　スロットを選択")
+            .setView(sv)
+            .setNegativeButton("キャンセル", null).show()
+    }
+
+    private fun doQuickSave() {
+        if (quickSaveFileIdx < 0 || quickSaveSlotIdx < 0) {
+            Toast.makeText(this, "先に「保存先設定」で保存先を選んでください", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val fileName = prefs.getString("cnt_file_${quickSaveFileIdx}_name", "ファイル${quickSaveFileIdx + 1}") ?: "ファイル${quickSaveFileIdx + 1}"
+        val slotNo = quickSaveSlotIdx + 1
+        val prefix = "cnt_f${quickSaveFileIdx}"
+        val existingName = prefs.getString("${prefix}_${quickSaveSlotIdx}_title", "") ?: ""
+        val msg = if (existingName.isNotEmpty())
+            "$fileName / スロット$slotNo「$existingName」に上書き保存しますか？"
+        else
+            "$fileName / スロット${slotNo}（空き）に保存しますか？"
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("上書き保存の確認")
+            .setMessage(msg)
+            .setPositiveButton("保存") { _, _ ->
+                val saveName = existingName.ifEmpty {
+                    appTitle + "_" + java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.JAPAN).format(java.util.Date())
+                }
+                saveToSlot(prefix, quickSaveSlotIdx, true, saveName)
+            }
+            .setNegativeButton("キャンセル", null).show()
     }
 
     // ─── 保存／呼出 ──────────────────────────────────────────
