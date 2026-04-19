@@ -785,7 +785,9 @@ class MainActivity : Activity() {
                 }
                 saveToSlot(prefix, quickSaveSlotIdx, true, saveName)
             }
-            .setNegativeButton("キャンセル", null).show()
+            .setNegativeButton("キャンセル") { _, _ ->
+                Toast.makeText(this, "保存しませんでした！", Toast.LENGTH_SHORT).show()
+            }.show()
     }
 
     // ─── 保存／呼出 ──────────────────────────────────────────
