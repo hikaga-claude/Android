@@ -1412,7 +1412,7 @@ class MainActivity : Activity() {
         }
 
         dialogHolder[0] = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
-            .setTitle("マイカラー編集（タップで色を変更）")
+            .setTitle("マイカラー編集")
             .setView(container)
             .setNegativeButton("閉じる", null).show()
     }
