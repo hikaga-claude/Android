@@ -519,7 +519,7 @@ class MainActivity : Activity() {
     // ─── メニュー ───────────────────────────────────────────
 
     private fun showMenuPopup(anchor: View) {
-        val items = arrayOf("テーマ変更（${PALETTE_NAMES[activePaletteIndex]}）", "棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "カウンター保存／呼出", "カウント結果保存／呼出", "マニュアル", "更新履歴")
+        val items = arrayOf("テーマ変更（${PALETTE_NAMES[activePaletteIndex]}）", "棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "カウンター保存／呼出", "カウント結果保存／呼出", "設定データをエクスポート", "カウントデータをエクスポート", "マニュアル", "更新履歴")
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("メニュー")
             .setItems(items) { _, which ->
@@ -531,8 +531,10 @@ class MainActivity : Activity() {
                     4 -> showUnitEditDialog()
                     5 -> showSaveSlotDialog()
                     6 -> showCountFileDialog()
-                    7 -> showManualDialog()
-                    8 -> showChangelogDialog()
+                    7 -> exportJson(false)
+                    8 -> exportJson(true)
+                    9 -> showManualDialog()
+                    10 -> showChangelogDialog()
                 }
             }
             .setNegativeButton("キャンセル", null).show()
@@ -737,6 +739,132 @@ class MainActivity : Activity() {
                 "・保存／呼出のファイル名変更機能"
             )
             .setNegativeButton("閉じる", null).show()
+    }
+
+    // ─── JSON エクスポート ────────────────────────────────────
+
+    private fun String.jsonEscape() =
+        replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "")
+
+    private fun colorToHex(c: Int) = String.format("#%06X", 0xFFFFFF and c)
+
+    private fun paletteJson(prefix: String, slot: Int): String {
+        val sb = StringBuilder("[")
+        for (p in 0 until 7) {
+            sb.append("[")
+            for (c in 0 until 20) {
+                val col = prefs.getInt("${prefix}_${slot}_pal_${p}_${c}", PALETTE_DEFAULTS[p][c])
+                sb.append("\"${colorToHex(col)}\"")
+                if (c < 19) sb.append(",")
+            }
+            sb.append("]")
+            if (p < 6) sb.append(",")
+        }
+        sb.append("]")
+        return sb.toString()
+    }
+
+    private fun exportJson(isCountResult: Boolean) {
+        val ts  = java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.JAPAN).format(java.util.Date())
+        val now = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.JAPAN).format(java.util.Date())
+        val json: String
+        val fileName: String
+
+        if (!isCountResult) {
+            // ── カウンター設定スロット ──
+            val prefix = "slot_cfg"
+            val slots = mutableListOf<String>()
+            for (slot in 0 until SLOT_COUNT_CFG) {
+                if (!prefs.getBoolean("${prefix}_${slot}_exists", false)) continue
+                val n  = prefs.getInt("${prefix}_${slot}_count", 0)
+                val counters = (0 until n).map { i ->
+                    val nm = (prefs.getString("${prefix}_${slot}_name_$i", "") ?: "").jsonEscape()
+                    val ci = prefs.getInt("${prefix}_${slot}_color_$i", 0)
+                    "{\"name\":\"$nm\",\"color_index\":$ci}"
+                }.joinToString(",")
+                slots.add("""{
+      "slot":${slot+1},
+      "name":"${(prefs.getString("${prefix}_${slot}_title","") ?: "").jsonEscape()}",
+      "saved_at":"${(prefs.getString("${prefix}_${slot}_saved_at","") ?: "").jsonEscape()}",
+      "app_title":"${(prefs.getString("${prefix}_${slot}_app_title","") ?: "").jsonEscape()}",
+      "unit":"${(prefs.getString("${prefix}_${slot}_unit","皿") ?: "皿").jsonEscape()}",
+      "palette_index":${prefs.getInt("${prefix}_${slot}_palette",1)},
+      "counters":[$counters],
+      "palettes":${paletteJson(prefix, slot)}
+    }""")
+            }
+            json = "{\n  \"type\":\"counter_settings\",\n  \"exported_at\":\"$now\",\n  \"slots\":[\n    ${slots.joinToString(",\n    ")}\n  ]\n}"
+            fileName = "sushi_settings_$ts.json"
+        } else {
+            // ── カウント結果ファイル ──
+            val files = mutableListOf<String>()
+            for (f in 0 until CNT_FILE_COUNT) {
+                val fName = (prefs.getString("cnt_file_${f}_name", "ファイル${f+1}") ?: "ファイル${f+1}").jsonEscape()
+                val prefix = "cnt_f$f"
+                val slots = mutableListOf<String>()
+                for (slot in 0 until CNT_SLOTS_PER_FILE) {
+                    if (!prefs.getBoolean("${prefix}_${slot}_exists", false)) continue
+                    val n = prefs.getInt("${prefix}_${slot}_count", 0)
+                    val counters = (0 until n).map { i ->
+                        val nm = (prefs.getString("${prefix}_${slot}_name_$i", "") ?: "").jsonEscape()
+                        val ci = prefs.getInt("${prefix}_${slot}_color_$i", 0)
+                        val v  = prefs.getInt("${prefix}_${slot}_val_$i", 0)
+                        "{\"name\":\"$nm\",\"color_index\":$ci,\"count\":$v}"
+                    }.joinToString(",")
+                    slots.add("""{
+          "slot":${slot+1},
+          "name":"${(prefs.getString("${prefix}_${slot}_title","") ?: "").jsonEscape()}",
+          "saved_at":"${(prefs.getString("${prefix}_${slot}_saved_at","") ?: "").jsonEscape()}",
+          "app_title":"${(prefs.getString("${prefix}_${slot}_app_title","") ?: "").jsonEscape()}",
+          "unit":"${(prefs.getString("${prefix}_${slot}_unit","皿") ?: "皿").jsonEscape()}",
+          "palette_index":${prefs.getInt("${prefix}_${slot}_palette",1)},
+          "counters":[$counters],
+          "palettes":${paletteJson(prefix, slot)}
+        }""")
+                }
+                files.add("{\n      \"file\":${f+1},\n      \"file_name\":\"$fName\",\n      \"slots\":[\n        ${slots.joinToString(",\n        ")}\n      ]\n    }")
+            }
+            json = "{\n  \"type\":\"count_results\",\n  \"exported_at\":\"$now\",\n  \"files\":[\n    ${files.joinToString(",\n    ")}\n  ]\n}"
+            fileName = "sushi_count_$ts.json"
+        }
+
+        saveAndShareJson(json, fileName)
+    }
+
+    private fun saveAndShareJson(content: String, fileName: String) {
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            try {
+                val downloadsClass = Class.forName("android.provider.MediaStore\$Downloads")
+                val displayNameField = downloadsClass.getField("DISPLAY_NAME")
+                val mimeTypeField = downloadsClass.getField("MIME_TYPE")
+                val extUriField = downloadsClass.getField("EXTERNAL_CONTENT_URI")
+                val displayName = displayNameField.get(null) as String
+                val mimeType = mimeTypeField.get(null) as String
+                val extUri = extUriField.get(null) as android.net.Uri
+                val values = android.content.ContentValues().apply {
+                    put(displayName, fileName)
+                    put(mimeType, "application/json")
+                }
+                val uri = contentResolver.insert(extUri, values)
+                if (uri != null) {
+                    contentResolver.openOutputStream(uri)?.use { it.write(content.toByteArray(Charsets.UTF_8)) }
+                    val share = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "application/json"
+                        putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    startActivity(android.content.Intent.createChooser(share, "エクスポート：$fileName"))
+                    return
+                }
+            } catch (_: Exception) { }
+        }
+        // フォールバック：テキスト共有
+        val share = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(android.content.Intent.EXTRA_TEXT, content)
+            putExtra(android.content.Intent.EXTRA_SUBJECT, fileName)
+        }
+        startActivity(android.content.Intent.createChooser(share, "エクスポート：$fileName"))
     }
 
     // ─── クイック上書き保存 ───────────────────────────────────
