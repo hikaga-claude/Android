@@ -238,6 +238,8 @@ class MainActivity : Activity() {
             text = quickSaveDestLabel()
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
             setTextColor(Color.parseColor("#555555"))
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
             background = GradientDrawable().apply {
                 setColor(Color.WHITE)
                 setStroke(dp(2), Color.parseColor("#888888"))
@@ -254,7 +256,7 @@ class MainActivity : Activity() {
             }
             setOnClickListener { doQuickSave() }
         }
-        quickBar.addView(quickSaveDestBtn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        quickBar.addView(quickSaveDestBtn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 2f))
         quickBar.addView(quickExecBtn,     LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         root.addView(quickBar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
