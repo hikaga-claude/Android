@@ -1303,6 +1303,19 @@ class MainActivity : Activity() {
                 rebuildGrid()
                 dialogHolder[0]?.dismiss()
             }
+            if (idx == 6) {
+                row.setOnLongClickListener {
+                    dialogHolder[0]?.dismiss()
+                    showMyColorPaletteEditor()
+                    true
+                }
+                row.addView(TextView(this).apply {
+                    text = "長押しで編集"
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
+                    setTextColor(Color.parseColor("#AAAAAA"))
+                    setPadding(dp(4), 0, dp(4), 0)
+                }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            }
             wrapper.addView(row, LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also {
                 it.bottomMargin = dp(4)
@@ -1312,6 +1325,48 @@ class MainActivity : Activity() {
         dialogHolder[0] = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("テーマ（カラーパレット）を選択")
             .setView(wrapper)
+            .setNegativeButton("閉じる", null).show()
+    }
+
+    // ─── マイカラーパレット編集 ───────────────────────────────
+
+    private fun showMyColorPaletteEditor() {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(8), dp(16), dp(8))
+        }
+        val dialogHolder = arrayOfNulls<AlertDialog>(1)
+
+        for (row in 0..4) {
+            val rowLayout = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setGravity(Gravity.CENTER)
+            }
+            for (col in 0..3) {
+                val ci = row * 4 + col
+                val swatchBg = GradientDrawable().apply {
+                    setColor(palettes[6][ci])
+                    setStroke(dp(2), Color.LTGRAY)
+                    setCornerRadius(dp(8).toFloat())
+                }
+                val swatch = View(this)
+                swatch.background = swatchBg
+                swatch.setOnClickListener {
+                    showRGBEditor(6, ci) {
+                        swatchBg.setColor(palettes[6][ci])
+                    }
+                }
+                rowLayout.addView(swatch,
+                    LinearLayout.LayoutParams(dp(52), dp(52)).also {
+                        it.setMargins(dp(6), dp(6), dp(6), dp(6))
+                    })
+            }
+            container.addView(rowLayout)
+        }
+
+        dialogHolder[0] = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("マイカラー編集（タップで色を変更）")
+            .setView(container)
             .setNegativeButton("閉じる", null).show()
     }
 
