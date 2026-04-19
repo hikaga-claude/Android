@@ -166,8 +166,8 @@ class MainActivity : Activity() {
 
         val stepBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setGravity(Gravity.CENTER)
-            setPadding(dp(8), dp(2), dp(8), dp(2))
+            setGravity(Gravity.CENTER_VERTICAL)
+            setPadding(dp(12), dp(4), dp(8), dp(4))
             setBackgroundColor(Color.parseColor("#F5F5F5"))
         }
         val stepLabel = TextView(this).apply {
@@ -255,13 +255,24 @@ class MainActivity : Activity() {
             setOnClickListener { doQuickSave() }
         }
         quickBar.addView(quickSaveDestBtn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        quickBar.addView(quickExecBtn,     LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        quickBar.addView(quickExecBtn,     LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         root.addView(quickBar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
         val bottomBar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
 
-        val resetBtn = Button(this).apply {
-            text = "全リセット"
+        val countResetBtn = Button(this).apply {
+            text = "カウントリセット"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setTextColor(Color.parseColor("#FF6F00"))
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                setStroke(dp(2), Color.parseColor("#FF6F00"))
+            }
+            setOnClickListener { showCountResetDialog() }
+        }
+        val initBtn = Button(this).apply {
+            text = "初期化"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
             setTextColor(Color.parseColor("#F44336"))
             background = GradientDrawable().apply {
                 setColor(Color.WHITE)
@@ -271,6 +282,7 @@ class MainActivity : Activity() {
         }
         val menuBtn = Button(this).apply {
             text = "メニュー ▲"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
             setTextColor(Color.parseColor("#1976D2"))
             background = GradientDrawable().apply {
                 setColor(Color.WHITE)
@@ -279,10 +291,9 @@ class MainActivity : Activity() {
         }
         menuBtn.setOnClickListener { showMenuPopup(menuBtn) }
 
-        bottomBar.addView(resetBtn, LinearLayout.LayoutParams(
-            0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        bottomBar.addView(menuBtn, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        bottomBar.addView(countResetBtn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        bottomBar.addView(initBtn,       LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        bottomBar.addView(menuBtn,       LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         root.addView(bottomBar, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
@@ -454,6 +465,19 @@ class MainActivity : Activity() {
                 }
                 editor.remove("name_$totalCounters").remove("color_$totalCounters").apply()
                 rebuildGrid()
+            }
+            .setNegativeButton("キャンセル", null).show()
+    }
+
+    private fun showCountResetDialog() {
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("カウントリセット")
+            .setMessage("すべてのカウントを0にします。\nネタ名や設定はそのまま維持されます。")
+            .setPositiveButton("リセット") { _, _ ->
+                for (i in 0 until totalCounters) {
+                    counts[i] = 0
+                    countViews[i].text = "0"
+                }
             }
             .setNegativeButton("キャンセル", null).show()
     }
