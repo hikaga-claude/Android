@@ -426,8 +426,8 @@ class MainActivity : Activity() {
                     2 -> showPieChartDialog()
                     3 -> copyToClipboard()
                     4 -> showUnitEditDialog()
-                    5 -> showSaveSlotDialog(withCounts = false)
-                    6 -> showSaveSlotDialog(withCounts = true)
+                    5 -> showSaveSlotDialog()
+                    6 -> showCountFileDialog()
                     7 -> showManualDialog()
                     8 -> showChangelogDialog()
                 }
@@ -628,95 +628,183 @@ class MainActivity : Activity() {
 
     // ─── 保存／呼出 ──────────────────────────────────────────
 
-    private val SLOT_COUNT = 5
+    private val SLOT_COUNT_CFG    = 10
+    private val CNT_FILE_COUNT    = 10
+    private val CNT_SLOTS_PER_FILE = 12
 
-    private fun showSaveSlotDialog(withCounts: Boolean) {
-        val prefix = if (withCounts) "slot_cnt" else "slot_cfg"
-        val dialogTitle = if (withCounts) "カウント結果 保存／呼出" else "カウンター設定 保存／呼出"
+    // ── カウンター設定：10スロット ──────────────────────────
+    private fun showSaveSlotDialog() {
+        buildSlotListDialog(
+            prefix = "slot_cfg",
+            slotCount = SLOT_COUNT_CFG,
+            dialogTitle = "カウンター設定 保存／呼出",
+            withCounts = false,
+            onRefresh = { showSaveSlotDialog() }
+        )
+    }
 
+    // ── カウント結果：ファイル一覧 ──────────────────────────
+    private fun showCountFileDialog() {
         val wrapper = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(8), dp(4), dp(8), dp(4))
         }
         val dialogHolder = arrayOfNulls<AlertDialog>(1)
 
-        for (slot in 0 until SLOT_COUNT) {
-            val exists = prefs.getBoolean("${prefix}_${slot}_exists", false)
+        for (f in 0 until CNT_FILE_COUNT) {
+            val fileName = prefs.getString("cnt_file_${f}_name", "ファイル${f + 1}") ?: "ファイル${f + 1}"
+            val usedCount = (0 until CNT_SLOTS_PER_FILE).count {
+                prefs.getBoolean("cnt_f${f}_${it}_exists", false)
+            }
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setGravity(Gravity.CENTER_VERTICAL)
+                setPadding(dp(4), dp(10), dp(4), dp(10))
+            }
+            val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            info.addView(TextView(this).apply {
+                text = fileName
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+                setTextColor(Color.parseColor("#333333"))
+                setTypeface(typeface, Typeface.BOLD)
+            })
+            info.addView(TextView(this).apply {
+                text = "$usedCount / $CNT_SLOTS_PER_FILE 件"
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+                setTextColor(Color.parseColor("#999999"))
+            })
+
+            fun mkBtn(label: String, color: String, action: () -> Unit) =
+                Button(this).apply {
+                    text = label; setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                    setTextColor(Color.parseColor(color)); setPadding(0, 0, 0, 0)
+                    background = GradientDrawable().apply {
+                        setColor(Color.WHITE); setStroke(dp(1), Color.parseColor(color))
+                        setCornerRadius(dp(4).toFloat())
+                    }
+                    setOnClickListener { action() }
+                }
+
+            val openBtn = mkBtn("開く", "#388E3C") {
+                dialogHolder[0]?.dismiss()
+                showCountFileSlots(f)
+            }
+            val renameBtn = mkBtn("名前変更", "#1976D2") {
+                val edit = EditText(this).apply {
+                    setText(fileName); inputType = InputType.TYPE_CLASS_TEXT; selectAll()
+                }
+                val wrap = LinearLayout(this).apply { setPadding(dp(16), dp(8), dp(16), dp(8)) }
+                wrap.addView(edit)
+                AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+                    .setTitle("ファイル名を変更")
+                    .setView(wrap)
+                    .setPositiveButton("変更") { _, _ ->
+                        val n = edit.text.toString().trim().ifEmpty { "ファイル${f + 1}" }
+                        prefs.edit().putString("cnt_file_${f}_name", n).apply()
+                        dialogHolder[0]?.dismiss(); showCountFileDialog()
+                    }
+                    .setNegativeButton("キャンセル", null).show()
+            }
+
+            row.addView(info, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            row.addView(renameBtn, LinearLayout.LayoutParams(dp(72), dp(38)).also { it.setMargins(dp(4), 0, dp(4), 0) })
+            row.addView(openBtn,   LinearLayout.LayoutParams(dp(54), dp(38)))
+            wrapper.addView(row)
+            if (f < CNT_FILE_COUNT - 1)
+                wrapper.addView(View(this).apply { setBackgroundColor(Color.parseColor("#EEEEEE")) },
+                    LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1))
+        }
+
+        val sv = ScrollView(this).apply { addView(wrapper) }
+        dialogHolder[0] = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle("カウント結果 保存／呼出")
+            .setView(sv)
+            .setNegativeButton("閉じる", null).show()
+    }
+
+    // ── カウント結果：ファイル内スロット（12個）──────────────
+    private fun showCountFileSlots(fileIdx: Int) {
+        val fileName = prefs.getString("cnt_file_${fileIdx}_name", "ファイル${fileIdx + 1}") ?: "ファイル${fileIdx + 1}"
+        buildSlotListDialog(
+            prefix = "cnt_f${fileIdx}",
+            slotCount = CNT_SLOTS_PER_FILE,
+            dialogTitle = fileName,
+            withCounts = true,
+            onRefresh = { showCountFileSlots(fileIdx) }
+        )
+    }
+
+    // ── 共通スロット一覧ダイアログビルダー ──────────────────
+    private fun buildSlotListDialog(
+        prefix: String, slotCount: Int, dialogTitle: String,
+        withCounts: Boolean, onRefresh: () -> Unit
+    ) {
+        val wrapper = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(8), dp(4), dp(8), dp(4))
+        }
+        val dialogHolder = arrayOfNulls<AlertDialog>(1)
+
+        for (slot in 0 until slotCount) {
+            val exists    = prefs.getBoolean("${prefix}_${slot}_exists", false)
             val savedTitle = prefs.getString("${prefix}_${slot}_title", "") ?: ""
-            val savedAt = prefs.getString("${prefix}_${slot}_saved_at", "") ?: ""
+            val savedAt   = prefs.getString("${prefix}_${slot}_saved_at", "") ?: ""
 
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 setGravity(Gravity.CENTER_VERTICAL)
                 setPadding(dp(4), dp(8), dp(4), dp(8))
             }
-
             val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-            val slotLabel = TextView(this).apply {
+            info.addView(TextView(this).apply {
                 text = "スロット ${slot + 1}"
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
                 setTextColor(Color.parseColor("#999999"))
-            }
-            val slotTitle = TextView(this).apply {
+            })
+            info.addView(TextView(this).apply {
                 text = if (exists) savedTitle else "（空き）"
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                 setTextColor(if (exists) Color.parseColor("#333333") else Color.LTGRAY)
-            }
-            info.addView(slotLabel)
-            info.addView(slotTitle)
-            if (exists) {
-                info.addView(TextView(this).apply {
-                    text = savedAt
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
-                    setTextColor(Color.parseColor("#AAAAAA"))
-                })
-            }
+            })
+            if (exists) info.addView(TextView(this).apply {
+                text = savedAt
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
+                setTextColor(Color.parseColor("#AAAAAA"))
+            })
 
             fun mkBtn(label: String, color: String, enabled: Boolean, action: () -> Unit) =
                 Button(this).apply {
-                    text = label
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                    text = label; setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
                     isEnabled = enabled
                     val c = if (enabled) Color.parseColor(color) else Color.LTGRAY
-                    setTextColor(c)
-                    setPadding(0, 0, 0, 0)
+                    setTextColor(c); setPadding(0, 0, 0, 0)
                     background = GradientDrawable().apply {
-                        setColor(Color.WHITE)
-                        setStroke(dp(1), c)
+                        setColor(Color.WHITE); setStroke(dp(1), c)
                         setCornerRadius(dp(4).toFloat())
                     }
                     setOnClickListener { action() }
                 }
 
-            val saveLabel = if (exists) "上書き" else "保存"
-            val saveBtn = mkBtn(saveLabel, "#1976D2", true) {
+            val saveBtn = mkBtn(if (exists) "上書き" else "保存", "#1976D2", true) {
                 if (exists) {
                     AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
                         .setTitle("上書き確認")
                         .setMessage("スロット${slot + 1}「$savedTitle」に上書きしますか？")
                         .setPositiveButton("上書き") { _, _ ->
                             saveToSlot(prefix, slot, withCounts, savedTitle)
-                            dialogHolder[0]?.dismiss()
-                            showSaveSlotDialog(withCounts)
+                            dialogHolder[0]?.dismiss(); onRefresh()
                         }
                         .setNegativeButton("キャンセル", null).show()
                 } else {
-                    val defaultName = appTitle + "_" + java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.JAPAN).format(java.util.Date())
-                    val edit = EditText(this).apply {
-                        setText(defaultName)
-                        inputType = InputType.TYPE_CLASS_TEXT
-                        selectAll()
-                    }
+                    val def = appTitle + "_" + java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.JAPAN).format(java.util.Date())
+                    val edit = EditText(this).apply { setText(def); inputType = InputType.TYPE_CLASS_TEXT; selectAll() }
                     val wrap = LinearLayout(this).apply { setPadding(dp(16), dp(8), dp(16), dp(8)) }
                     wrap.addView(edit)
                     AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
-                        .setTitle("保存名を入力")
-                        .setView(wrap)
+                        .setTitle("保存名を入力").setView(wrap)
                         .setPositiveButton("保存") { _, _ ->
-                            val saveName = edit.text.toString().trim().ifEmpty { defaultName }
-                            saveToSlot(prefix, slot, withCounts, saveName)
-                            dialogHolder[0]?.dismiss()
-                            showSaveSlotDialog(withCounts)
+                            saveToSlot(prefix, slot, withCounts, edit.text.toString().trim().ifEmpty { def })
+                            dialogHolder[0]?.dismiss(); onRefresh()
                         }
                         .setNegativeButton("キャンセル", null).show()
                 }
@@ -726,8 +814,7 @@ class MainActivity : Activity() {
                     .setTitle("呼出確認")
                     .setMessage("スロット${slot + 1}「$savedTitle」を呼び出しますか？\n現在のデータは上書きされます。")
                     .setPositiveButton("呼出") { _, _ ->
-                        loadFromSlot(prefix, slot, withCounts)
-                        dialogHolder[0]?.dismiss()
+                        loadFromSlot(prefix, slot, withCounts); dialogHolder[0]?.dismiss()
                     }
                     .setNegativeButton("キャンセル", null).show()
             }
@@ -736,29 +823,24 @@ class MainActivity : Activity() {
                     .setTitle("削除確認")
                     .setMessage("スロット${slot + 1}「$savedTitle」を削除しますか？")
                     .setPositiveButton("削除") { _, _ ->
-                        deleteSlot(prefix, slot)
-                        dialogHolder[0]?.dismiss()
-                        showSaveSlotDialog(withCounts)
+                        deleteSlot(prefix, slot); dialogHolder[0]?.dismiss(); onRefresh()
                     }
                     .setNegativeButton("キャンセル", null).show()
             }
 
-            row.addView(info, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            row.addView(info,    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             row.addView(saveBtn, LinearLayout.LayoutParams(dp(54), dp(38)).also { it.setMargins(dp(3), 0, dp(3), 0) })
             row.addView(loadBtn, LinearLayout.LayoutParams(dp(54), dp(38)).also { it.setMargins(0, 0, dp(3), 0) })
             row.addView(delBtn,  LinearLayout.LayoutParams(dp(46), dp(38)))
             wrapper.addView(row)
-
-            if (slot < SLOT_COUNT - 1) {
+            if (slot < slotCount - 1)
                 wrapper.addView(View(this).apply { setBackgroundColor(Color.parseColor("#EEEEEE")) },
                     LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1))
-            }
         }
 
         val sv = ScrollView(this).apply { addView(wrapper) }
         dialogHolder[0] = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
-            .setTitle(dialogTitle)
-            .setView(sv)
+            .setTitle(dialogTitle).setView(sv)
             .setNegativeButton("閉じる", null).show()
     }
 
