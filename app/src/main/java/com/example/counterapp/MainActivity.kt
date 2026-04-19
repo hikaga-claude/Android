@@ -416,7 +416,7 @@ class MainActivity : Activity() {
     // ─── メニュー ───────────────────────────────────────────
 
     private fun showMenuPopup(anchor: View) {
-        val items = arrayOf("テーマ変更（${PALETTE_NAMES[activePaletteIndex]}）", "棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "マニュアル", "更新履歴")
+        val items = arrayOf("テーマ変更（${PALETTE_NAMES[activePaletteIndex]}）", "棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "カウンター保存／呼出", "カウント結果保存／呼出", "マニュアル", "更新履歴")
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("メニュー")
             .setItems(items) { _, which ->
@@ -426,8 +426,10 @@ class MainActivity : Activity() {
                     2 -> showPieChartDialog()
                     3 -> copyToClipboard()
                     4 -> showUnitEditDialog()
-                    5 -> showManualDialog()
-                    6 -> showChangelogDialog()
+                    5 -> showSaveSlotDialog(withCounts = false)
+                    6 -> showSaveSlotDialog(withCounts = true)
+                    7 -> showManualDialog()
+                    8 -> showChangelogDialog()
                 }
             }
             .setNegativeButton("キャンセル", null).show()
@@ -598,6 +600,8 @@ class MainActivity : Activity() {
                 "■ 音声入力\nタイトル右の 🎤 をタップ\n例：「いか いち まぐろ さん」\n\n" +
                 "■ クリップボードにコピー\nメニュー →「クリップボードにコピー」をタップ\n全カウントをテキスト形式でコピーします\n\n" +
                 "■ 単位の変更\nメニュー →「単位を変更」をタップ\n\n" +
+                "■ カウンター保存／呼出\nメニュー →「カウンター保存／呼出」をタップ\n設定（タイトル・単位・ネタ名・パレット）を5スロットに保存\n呼び出し時のカウントはすべて0\n\n" +
+                "■ カウント結果保存／呼出\nメニュー →「カウント結果保存／呼出」をタップ\nカウント数も含めて保存・復元\n続きからカウントを再開できます\n\n" +
                 "■ テーマ変更\nメニュー →「テーマ変更」をタップ\n7種のカラーパレットから選択\n\n" +
                 "■ カラーの個別編集（マイカラーのみ）\nネタ名を長押し → 色選択で色を長押し\nRGBスライダーで自由に色を設定できます\n※パステル〜ピンクのパレットは読み取り専用です\n\n" +
                 "■ マイカラーへの一括コピー\nネタ名を長押し → 色選択の「別パレットから一括コピー」\nお好みのパレットをベースにカスタマイズできます"
@@ -620,6 +624,199 @@ class MainActivity : Activity() {
                 "・全リセット機能"
             )
             .setNegativeButton("閉じる", null).show()
+    }
+
+    // ─── 保存／呼出 ──────────────────────────────────────────
+
+    private val SLOT_COUNT = 5
+
+    private fun showSaveSlotDialog(withCounts: Boolean) {
+        val prefix = if (withCounts) "slot_cnt" else "slot_cfg"
+        val dialogTitle = if (withCounts) "カウント結果 保存／呼出" else "カウンター設定 保存／呼出"
+
+        val wrapper = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(8), dp(4), dp(8), dp(4))
+        }
+        val dialogHolder = arrayOfNulls<AlertDialog>(1)
+
+        for (slot in 0 until SLOT_COUNT) {
+            val exists = prefs.getBoolean("${prefix}_${slot}_exists", false)
+            val savedTitle = prefs.getString("${prefix}_${slot}_title", "") ?: ""
+            val savedAt = prefs.getString("${prefix}_${slot}_saved_at", "") ?: ""
+
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setGravity(Gravity.CENTER_VERTICAL)
+                setPadding(dp(4), dp(8), dp(4), dp(8))
+            }
+
+            val info = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            val slotLabel = TextView(this).apply {
+                text = "スロット ${slot + 1}"
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
+                setTextColor(Color.parseColor("#999999"))
+            }
+            val slotTitle = TextView(this).apply {
+                text = if (exists) savedTitle else "（空き）"
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                setTextColor(if (exists) Color.parseColor("#333333") else Color.LTGRAY)
+            }
+            info.addView(slotLabel)
+            info.addView(slotTitle)
+            if (exists) {
+                info.addView(TextView(this).apply {
+                    text = savedAt
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
+                    setTextColor(Color.parseColor("#AAAAAA"))
+                })
+            }
+
+            fun mkBtn(label: String, color: String, enabled: Boolean, action: () -> Unit) =
+                Button(this).apply {
+                    text = label
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                    isEnabled = enabled
+                    val c = if (enabled) Color.parseColor(color) else Color.LTGRAY
+                    setTextColor(c)
+                    setPadding(0, 0, 0, 0)
+                    background = GradientDrawable().apply {
+                        setColor(Color.WHITE)
+                        setStroke(dp(1), c)
+                        setCornerRadius(dp(4).toFloat())
+                    }
+                    setOnClickListener { action() }
+                }
+
+            val saveLabel = if (exists) "上書き" else "保存"
+            val saveBtn = mkBtn(saveLabel, "#1976D2", true) {
+                val doSave = {
+                    saveToSlot(prefix, slot, withCounts)
+                    dialogHolder[0]?.dismiss()
+                    showSaveSlotDialog(withCounts)
+                }
+                if (exists) {
+                    AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+                        .setTitle("上書き確認")
+                        .setMessage("スロット${slot + 1}「$savedTitle」に上書きしますか？")
+                        .setPositiveButton("上書き") { _, _ -> doSave() }
+                        .setNegativeButton("キャンセル", null).show()
+                } else {
+                    doSave()
+                }
+            }
+            val loadBtn = mkBtn("呼出", "#388E3C", exists) {
+                AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+                    .setTitle("呼出確認")
+                    .setMessage("スロット${slot + 1}「$savedTitle」を呼び出しますか？\n現在のデータは上書きされます。")
+                    .setPositiveButton("呼出") { _, _ ->
+                        loadFromSlot(prefix, slot, withCounts)
+                        dialogHolder[0]?.dismiss()
+                    }
+                    .setNegativeButton("キャンセル", null).show()
+            }
+            val delBtn = mkBtn("削除", "#E53935", exists) {
+                AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+                    .setTitle("削除確認")
+                    .setMessage("スロット${slot + 1}「$savedTitle」を削除しますか？")
+                    .setPositiveButton("削除") { _, _ ->
+                        deleteSlot(prefix, slot)
+                        dialogHolder[0]?.dismiss()
+                        showSaveSlotDialog(withCounts)
+                    }
+                    .setNegativeButton("キャンセル", null).show()
+            }
+
+            row.addView(info, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            row.addView(saveBtn, LinearLayout.LayoutParams(dp(54), dp(38)).also { it.setMargins(dp(3), 0, dp(3), 0) })
+            row.addView(loadBtn, LinearLayout.LayoutParams(dp(54), dp(38)).also { it.setMargins(0, 0, dp(3), 0) })
+            row.addView(delBtn,  LinearLayout.LayoutParams(dp(46), dp(38)))
+            wrapper.addView(row)
+
+            if (slot < SLOT_COUNT - 1) {
+                wrapper.addView(View(this).apply { setBackgroundColor(Color.parseColor("#EEEEEE")) },
+                    LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1))
+            }
+        }
+
+        val sv = ScrollView(this).apply { addView(wrapper) }
+        dialogHolder[0] = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle(dialogTitle)
+            .setView(sv)
+            .setNegativeButton("閉じる", null).show()
+    }
+
+    private fun saveToSlot(prefix: String, slot: Int, withCounts: Boolean) {
+        val sdf = java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.JAPAN)
+        val now = sdf.format(java.util.Date())
+        val editor = prefs.edit()
+        editor.putBoolean("${prefix}_${slot}_exists", true)
+        editor.putString("${prefix}_${slot}_title", appTitle)
+        editor.putString("${prefix}_${slot}_unit", unit)
+        editor.putString("${prefix}_${slot}_saved_at", now)
+        editor.putInt("${prefix}_${slot}_count", totalCounters)
+        editor.putInt("${prefix}_${slot}_palette", activePaletteIndex)
+        for (i in 0 until totalCounters) {
+            editor.putString("${prefix}_${slot}_name_$i", names[i])
+            editor.putInt("${prefix}_${slot}_color_$i", colorIndices[i])
+            if (withCounts) editor.putInt("${prefix}_${slot}_val_$i", counts[i])
+        }
+        for (p in 0 until 7) for (c in 0 until 20) {
+            editor.putInt("${prefix}_${slot}_pal_${p}_${c}", palettes[p][c])
+        }
+        editor.apply()
+        Toast.makeText(this, "スロット${slot + 1}に保存しました", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun loadFromSlot(prefix: String, slot: Int, withCounts: Boolean) {
+        val n = prefs.getInt("${prefix}_${slot}_count", 6)
+        appTitle = prefs.getString("${prefix}_${slot}_title", "西川さんお寿司カウンター") ?: "西川さんお寿司カウンター"
+        unit = prefs.getString("${prefix}_${slot}_unit", "皿") ?: "皿"
+        activePaletteIndex = prefs.getInt("${prefix}_${slot}_palette", 1)
+        palettes = Array(7) { p -> IntArray(20) { c ->
+            prefs.getInt("${prefix}_${slot}_pal_${p}_${c}", PALETTE_DEFAULTS[p][c])
+        }}
+        counts.clear(); names.clear(); colorIndices.clear()
+        totalCounters = n
+        for (i in 0 until n) {
+            names.add(prefs.getString("${prefix}_${slot}_name_$i", "ネタ${i + 1}") ?: "ネタ${i + 1}")
+            colorIndices.add(prefs.getInt("${prefix}_${slot}_color_$i", 14))
+            counts.add(if (withCounts) prefs.getInt("${prefix}_${slot}_val_$i", 0) else 0)
+        }
+        titleView.text = appTitle
+        val editor = prefs.edit()
+        editor.putString("app_title", appTitle).putString("unit", unit)
+            .putInt("active_palette", activePaletteIndex).putInt("counter_count", totalCounters)
+        for (i in 0 until totalCounters) {
+            editor.putString("name_$i", names[i]).putInt("color_$i", colorIndices[i])
+        }
+        for (p in 0 until 7) for (c in 0 until 20) {
+            editor.putInt("pal_${p}_${c}", palettes[p][c])
+        }
+        editor.apply()
+        rebuildGrid()
+        val msg = if (withCounts) "スロット${slot + 1}を呼び出しました（カウント復元）"
+                  else "スロット${slot + 1}を呼び出しました（カウントは0）"
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun deleteSlot(prefix: String, slot: Int) {
+        val editor = prefs.edit()
+        val n = prefs.getInt("${prefix}_${slot}_count", 6)
+        editor.remove("${prefix}_${slot}_exists")
+            .remove("${prefix}_${slot}_title").remove("${prefix}_${slot}_unit")
+            .remove("${prefix}_${slot}_saved_at").remove("${prefix}_${slot}_count")
+            .remove("${prefix}_${slot}_palette")
+        for (i in 0 until n) {
+            editor.remove("${prefix}_${slot}_name_$i")
+                .remove("${prefix}_${slot}_color_$i")
+                .remove("${prefix}_${slot}_val_$i")
+        }
+        for (p in 0 until 7) for (c in 0 until 20) {
+            editor.remove("${prefix}_${slot}_pal_${p}_${c}")
+        }
+        editor.apply()
+        Toast.makeText(this, "スロット${slot + 1}を削除しました", Toast.LENGTH_SHORT).show()
     }
 
     // ─── 色選択ダイアログ ─────────────────────────────────────
