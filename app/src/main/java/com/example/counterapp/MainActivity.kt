@@ -87,7 +87,9 @@ class MainActivity : Activity() {
     private var totalCounters = 0
     private var cardWidth = 0
     private var draggingIndex = -1
-    private val REQUEST_SPEECH = 1001
+    private val REQUEST_SPEECH     = 1001
+    private val REQUEST_IMPORT_CFG = 1002
+    private val REQUEST_IMPORT_CNT = 1003
     private var unit = "皿"
     private var appTitle = "西川さんお寿司カウンター"
     private lateinit var titleView: TextView
@@ -519,7 +521,7 @@ class MainActivity : Activity() {
     // ─── メニュー ───────────────────────────────────────────
 
     private fun showMenuPopup(anchor: View) {
-        val items = arrayOf("テーマ変更（${PALETTE_NAMES[activePaletteIndex]}）", "棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "カウンター保存／呼出", "カウント結果保存／呼出", "設定データをエクスポート", "カウントデータをエクスポート", "マニュアル", "更新履歴")
+        val items = arrayOf("テーマ変更（${PALETTE_NAMES[activePaletteIndex]}）", "棒グラフ（多い順・0含む）", "円グラフ（多い順・0除外）", "クリップボードにコピー", "単位を変更（現在：$unit）", "カウンター保存／呼出", "カウント結果保存／呼出", "設定データをエクスポート", "カウントデータをエクスポート", "設定データをインポート", "カウントデータをインポート", "マニュアル", "更新履歴")
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("メニュー")
             .setItems(items) { _, which ->
@@ -533,8 +535,10 @@ class MainActivity : Activity() {
                     6 -> showCountFileDialog()
                     7 -> exportJson(false)
                     8 -> exportJson(true)
-                    9 -> showManualDialog()
-                    10 -> showChangelogDialog()
+                    9 -> startImportPicker(false)
+                    10 -> startImportPicker(true)
+                    11 -> showManualDialog()
+                    12 -> showChangelogDialog()
                 }
             }
             .setNegativeButton("キャンセル", null).show()
@@ -1770,6 +1774,117 @@ class MainActivity : Activity() {
             val results = data?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
             val text = results?.firstOrNull() ?: return
             parseVoiceCommand(text)
+            return
+        }
+        if (resultCode != Activity.RESULT_OK || data?.data == null) return
+        val uri = data.data!!
+        val content = try {
+            contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
+        } catch (e: Exception) { null }
+        if (content == null) {
+            android.widget.Toast.makeText(this, "ファイルを読み込めませんでした", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        when (requestCode) {
+            REQUEST_IMPORT_CFG -> importJson(content, false)
+            REQUEST_IMPORT_CNT -> importJson(content, true)
+        }
+    }
+
+    private fun startImportPicker(isCountResult: Boolean) {
+        val intent = android.content.Intent(android.content.Intent.ACTION_GET_CONTENT).apply {
+            type = "*/*"
+            addCategory(android.content.Intent.CATEGORY_OPENABLE)
+        }
+        startActivityForResult(
+            android.content.Intent.createChooser(intent, "JSONファイルを選択"),
+            if (isCountResult) REQUEST_IMPORT_CNT else REQUEST_IMPORT_CFG
+        )
+    }
+
+    private fun importJson(content: String, isCountResult: Boolean) {
+        try {
+            val root = org.json.JSONObject(content)
+            val type = root.getString("type")
+            if (!isCountResult && type == "counter_settings") {
+                val slots = root.getJSONArray("slots")
+                var count = 0
+                for (i in 0 until slots.length()) {
+                    val slot = slots.getJSONObject(i)
+                    val slotIdx = slot.getInt("slot") - 1
+                    if (slotIdx < 0 || slotIdx >= SLOT_COUNT_CFG) continue
+                    val prefix = "slot_cfg"
+                    val edit = prefs.edit()
+                    edit.putBoolean("${prefix}_${slotIdx}_exists", true)
+                    edit.putString("${prefix}_${slotIdx}_title", slot.getString("name"))
+                    edit.putString("${prefix}_${slotIdx}_saved_at", slot.getString("saved_at"))
+                    edit.putString("${prefix}_${slotIdx}_app_title", slot.getString("app_title"))
+                    edit.putString("${prefix}_${slotIdx}_unit", slot.getString("unit"))
+                    edit.putInt("${prefix}_${slotIdx}_palette", slot.getInt("palette_index"))
+                    val counters = slot.getJSONArray("counters")
+                    edit.putInt("${prefix}_${slotIdx}_count", counters.length())
+                    for (j in 0 until counters.length()) {
+                        val c = counters.getJSONObject(j)
+                        edit.putString("${prefix}_${slotIdx}_name_$j", c.getString("name"))
+                        edit.putInt("${prefix}_${slotIdx}_color_$j", c.getInt("color_index"))
+                    }
+                    val palJson = slot.getJSONArray("palettes")
+                    for (p in 0 until palJson.length()) {
+                        val pal = palJson.getJSONArray(p)
+                        for (c in 0 until pal.length()) {
+                            edit.putInt("${prefix}_${slotIdx}_pal_${p}_${c}", Color.parseColor(pal.getString(c)))
+                        }
+                    }
+                    edit.apply()
+                    count++
+                }
+                android.widget.Toast.makeText(this, "${count}件のカウンター設定をインポートしました", android.widget.Toast.LENGTH_SHORT).show()
+            } else if (isCountResult && type == "count_results") {
+                val files = root.getJSONArray("files")
+                var count = 0
+                for (fi in 0 until files.length()) {
+                    val file = files.getJSONObject(fi)
+                    val fileIdx = file.getInt("file") - 1
+                    if (fileIdx < 0 || fileIdx >= CNT_FILE_COUNT) continue
+                    prefs.edit().putString("cnt_file_${fileIdx}_name", file.getString("file_name")).apply()
+                    val slots = file.getJSONArray("slots")
+                    for (si in 0 until slots.length()) {
+                        val slot = slots.getJSONObject(si)
+                        val slotIdx = slot.getInt("slot") - 1
+                        if (slotIdx < 0 || slotIdx >= CNT_SLOTS_PER_FILE) continue
+                        val prefix = "cnt_f$fileIdx"
+                        val edit = prefs.edit()
+                        edit.putBoolean("${prefix}_${slotIdx}_exists", true)
+                        edit.putString("${prefix}_${slotIdx}_title", slot.getString("name"))
+                        edit.putString("${prefix}_${slotIdx}_saved_at", slot.getString("saved_at"))
+                        edit.putString("${prefix}_${slotIdx}_app_title", slot.getString("app_title"))
+                        edit.putString("${prefix}_${slotIdx}_unit", slot.getString("unit"))
+                        edit.putInt("${prefix}_${slotIdx}_palette", slot.getInt("palette_index"))
+                        val counters = slot.getJSONArray("counters")
+                        edit.putInt("${prefix}_${slotIdx}_count", counters.length())
+                        for (j in 0 until counters.length()) {
+                            val c = counters.getJSONObject(j)
+                            edit.putString("${prefix}_${slotIdx}_name_$j", c.getString("name"))
+                            edit.putInt("${prefix}_${slotIdx}_color_$j", c.getInt("color_index"))
+                            edit.putInt("${prefix}_${slotIdx}_val_$j", c.getInt("count"))
+                        }
+                        val palJson = slot.getJSONArray("palettes")
+                        for (p in 0 until palJson.length()) {
+                            val pal = palJson.getJSONArray(p)
+                            for (c in 0 until pal.length()) {
+                                edit.putInt("${prefix}_${slotIdx}_pal_${p}_${c}", Color.parseColor(pal.getString(c)))
+                            }
+                        }
+                        edit.apply()
+                        count++
+                    }
+                }
+                android.widget.Toast.makeText(this, "${count}件のカウント結果をインポートしました", android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                android.widget.Toast.makeText(this, "ファイル形式が正しくありません", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            android.widget.Toast.makeText(this, "インポートに失敗しました：${e.message}", android.widget.Toast.LENGTH_LONG).show()
         }
     }
 
