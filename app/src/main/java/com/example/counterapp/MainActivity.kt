@@ -690,24 +690,36 @@ class MainActivity : Activity() {
 
             val saveLabel = if (exists) "上書き" else "保存"
             val saveBtn = mkBtn(saveLabel, "#1976D2", true) {
-                val defaultName = java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.JAPAN).format(java.util.Date())
-                val edit = EditText(this).apply {
-                    setText(defaultName)
-                    inputType = InputType.TYPE_CLASS_TEXT
-                    selectAll()
-                }
-                val wrap = LinearLayout(this).apply { setPadding(dp(16), dp(8), dp(16), dp(8)) }
-                wrap.addView(edit)
-                AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
-                    .setTitle("保存名を入力")
-                    .setView(wrap)
-                    .setPositiveButton(if (exists) "上書き" else "保存") { _, _ ->
-                        val saveName = edit.text.toString().trim().ifEmpty { defaultName }
-                        saveToSlot(prefix, slot, withCounts, saveName)
-                        dialogHolder[0]?.dismiss()
-                        showSaveSlotDialog(withCounts)
+                if (exists) {
+                    AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+                        .setTitle("上書き確認")
+                        .setMessage("スロット${slot + 1}「$savedTitle」に上書きしますか？")
+                        .setPositiveButton("上書き") { _, _ ->
+                            saveToSlot(prefix, slot, withCounts, savedTitle)
+                            dialogHolder[0]?.dismiss()
+                            showSaveSlotDialog(withCounts)
+                        }
+                        .setNegativeButton("キャンセル", null).show()
+                } else {
+                    val defaultName = java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.JAPAN).format(java.util.Date())
+                    val edit = EditText(this).apply {
+                        setText(defaultName)
+                        inputType = InputType.TYPE_CLASS_TEXT
+                        selectAll()
                     }
-                    .setNegativeButton("キャンセル", null).show()
+                    val wrap = LinearLayout(this).apply { setPadding(dp(16), dp(8), dp(16), dp(8)) }
+                    wrap.addView(edit)
+                    AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+                        .setTitle("保存名を入力")
+                        .setView(wrap)
+                        .setPositiveButton("保存") { _, _ ->
+                            val saveName = edit.text.toString().trim().ifEmpty { defaultName }
+                            saveToSlot(prefix, slot, withCounts, saveName)
+                            dialogHolder[0]?.dismiss()
+                            showSaveSlotDialog(withCounts)
+                        }
+                        .setNegativeButton("キャンセル", null).show()
+                }
             }
             val loadBtn = mkBtn("呼出", "#388E3C", exists) {
                 AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
