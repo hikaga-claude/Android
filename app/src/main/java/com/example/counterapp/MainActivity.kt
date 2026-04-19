@@ -94,6 +94,7 @@ class MainActivity : Activity() {
     private var quickSaveFileIdx = -1
     private var quickSaveSlotIdx = -1
     private lateinit var quickSaveDestBtn: Button
+    private var countStep = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -162,6 +163,51 @@ class MainActivity : Activity() {
             ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         root.addView(titleBar, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+
+        val stepBar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setGravity(Gravity.CENTER)
+            setPadding(dp(8), dp(2), dp(8), dp(2))
+            setBackgroundColor(Color.parseColor("#F5F5F5"))
+        }
+        val stepLabel = TextView(this).apply {
+            text = "カウント単位："
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setTextColor(Color.parseColor("#555555"))
+        }
+        fun makeStepBtn(label: String, step: Int, btns: Array<Button?>) = Button(this).apply {
+            text = label
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setPadding(dp(4), 0, dp(4), 0)
+            setOnClickListener {
+                countStep = step
+                btns.forEach { it?.background = GradientDrawable().apply {
+                    setColor(Color.WHITE); setStroke(dp(1), Color.parseColor("#BBBBBB")); setCornerRadius(dp(4).toFloat())
+                }}
+                background = GradientDrawable().apply {
+                    setColor(Color.parseColor("#1976D2")); setCornerRadius(dp(4).toFloat())
+                }
+                setTextColor(Color.WHITE)
+                btns.filter { it != this }?.forEach { it?.setTextColor(Color.parseColor("#555555")) }
+            }
+        }
+        val stepBtns = arrayOfNulls<Button>(2)
+        stepBtns[0] = makeStepBtn("×1",  1,  stepBtns)
+        stepBtns[1] = makeStepBtn("×10", 10, stepBtns)
+        // 初期状態：×1 を選択済みスタイルに
+        stepBtns[0]!!.apply {
+            background = GradientDrawable().apply { setColor(Color.parseColor("#1976D2")); setCornerRadius(dp(4).toFloat()) }
+            setTextColor(Color.WHITE)
+        }
+        stepBtns[1]!!.apply {
+            background = GradientDrawable().apply { setColor(Color.WHITE); setStroke(dp(1), Color.parseColor("#BBBBBB")); setCornerRadius(dp(4).toFloat()) }
+            setTextColor(Color.parseColor("#555555"))
+        }
+        stepBar.addView(stepLabel)
+        stepBtns.forEach { btn ->
+            stepBar.addView(btn, LinearLayout.LayoutParams(dp(52), dp(28)).also { it.setMargins(dp(4), 0, dp(4), 0) })
+        }
+        root.addView(stepBar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
         scrollView = ScrollView(this)
         val inner = LinearLayout(this).apply {
@@ -341,10 +387,10 @@ class MainActivity : Activity() {
             }
 
         btnLayout.addView(btn("＋", "#1976D2", "#1976D2") {
-            counts[index]++; countView.text = counts[index].toString()
+            counts[index] += countStep; countView.text = counts[index].toString()
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h))
         btnLayout.addView(btn("－", "#546E7A", "#546E7A") {
-            if (counts[index] > 0) { counts[index]--; countView.text = counts[index].toString() }
+            counts[index] = maxOf(0, counts[index] - countStep); countView.text = counts[index].toString()
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h))
         btnLayout.addView(btn("×", "#B0BEC5", "#B0BEC5") {
             counts[index] = 0; countView.text = "0"
