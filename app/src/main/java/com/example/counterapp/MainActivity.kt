@@ -697,127 +697,104 @@ class MainActivity : Activity() {
     }
 
     private fun showManualDialog() {
-        val b = "#1976D2"
-        val g = "#BBBBBB"
-        val sep = "<font color=\"$g\">─────────────────────</font><br>"
-        val html =
-            "<b><font color=\"$b\">目次</font></b><br>" +
-            "　1. カウンター操作<br>" +
-            "　2. 色の変更<br>" +
-            "　3. 集計・コピー<br>" +
-            "　4. ファイル操作<br><br>" +
-
-            sep +
-            "<b><font color=\"$b\">1. カウンター操作</font></b><br><br>" +
-
-            "<b>▷ タイトルの変更</b><br>" +
-            "タイトルをタップ<br><br>" +
-
-            "<b>▷ ネタ名の変更</b><br>" +
-            "ネタ名をタップ<br><br>" +
-
-            "<b>▷ カウントアップ・ダウン</b><br>" +
-            "＋ / － ボタンをタップ<br><br>" +
-
-            "<b>▷ カウントステップ（×1 / ×10）</b><br>" +
-            "タイトル下の ×1 / ×10 をタップ<br>" +
-            "＋／－ボタンの増減量が切り替わります<br><br>" +
-
-            "<b>▷ 並べ替え</b><br>" +
-            "数字を長押ししてドラッグ<br>" +
-            "移動先に割り込み、以降がひとつズレます<br><br>" +
-
-            "<b>▷ カードの削除</b><br>" +
-            "カード右上の ☒ をタップ（確認あり）<br><br>" +
-
-            "<b>▷ カウントリセット</b><br>" +
-            "下部「カウントリセット」をタップ<br>" +
-            "カウントのみ0に戻します（ネタ名・設定はそのまま）<br><br>" +
-
-            "<b>▷ 初期化</b><br>" +
-            "下部「初期化」をタップ<br>" +
-            "デフォルト6種類に戻り、すべての設定がリセットされます<br><br>" +
-
-            "<b>▷ 単位の変更</b><br>" +
-            "メニュー →「単位を変更」をタップ<br><br>" +
-
-            "<b>▷ 音声入力</b><br>" +
-            "タイトル右の 🎤 をタップ<br>" +
-            "例：「いか いち まぐろ さん」<br><br>" +
-
-            sep +
-            "<b><font color=\"$b\">2. 色の変更</font></b><br><br>" +
-
-            "<b>▷ テーマ変更</b><br>" +
-            "メニュー →「テーマ変更」をタップ<br>" +
-            "7種のカラーパレットから選択できます<br><br>" +
-
-            "<b>▷ カウンターの色を個別変更（マイカラーのみ）</b><br>" +
-            "ネタ名を長押し → 色を長押し<br>" +
-            "RGBスライダーで自由に色を設定できます<br>" +
-            "※パステル〜ピンクのパレットは読み取り専用<br><br>" +
-
-            "<b>▷ マイカラーパレット編集</b><br>" +
-            "テーマ変更画面でマイカラーを長押し<br>" +
-            "20色を個別にRGBエディタで編集できます<br><br>" +
-
-            "<b>▷ 他パレットからの一括コピー</b><br>" +
-            "ネタ名を長押し → 色選択の「別パレットから一括コピー」<br>" +
-            "またはマイカラーパレット編集画面のコピーボタン<br><br>" +
-
-            sep +
-            "<b><font color=\"$b\">3. 集計・コピー</font></b><br><br>" +
-
-            "<b>▷ 棒グラフ</b><br>" +
-            "メニュー →「棒グラフ（多い順・0含む）」<br><br>" +
-
-            "<b>▷ 円グラフ</b><br>" +
-            "メニュー →「円グラフ（多い順・0除外）」<br><br>" +
-
-            "<b>▷ クリップボードにコピー</b><br>" +
-            "メニュー →「クリップボードにコピー」<br>" +
-            "全カウントをテキスト形式でコピーします<br><br>" +
-
-            sep +
-            "<b><font color=\"$b\">4. ファイル操作</font></b><br><br>" +
-
-            "<b>▷ カウンター設定の保存／呼出</b><br>" +
-            "メニュー →「カウンター保存／呼出」をタップ<br>" +
-            "タイトル・単位・ネタ名・パレットを10スロットに保存<br>" +
-            "呼び出し時のカウントはすべて0<br><br>" +
-
-            "<b>▷ カウント結果の保存／呼出</b><br>" +
-            "メニュー →「カウント結果保存／呼出」をタップ<br>" +
-            "10ファイル×12スロットにカウント数も含めて保存・復元<br>" +
-            "続きからカウントを再開できます<br><br>" +
-
-            "<b>▷ 保存先設定</b><br>" +
-            "下部「保存先設定」をタップ<br>" +
-            "カウント結果の上書き先ファイル・スロットを選択<br><br>" +
-
-            "<b>▷ 上書き保存</b><br>" +
-            "下部「上書き保存」をタップ<br>" +
-            "設定した保存先にカウント結果を即時保存<br><br>" +
-
-            "<b>▷ JSONエクスポート</b><br>" +
-            "メニュー →「設定データをエクスポート」または「カウントデータをエクスポート」<br>" +
-            "保存スロットの内容をJSON形式で書き出します<br>" +
-            "Android 10以降：ダウンロードフォルダに保存後トーストで通知し共有シートを表示<br>" +
-            "Android 9以前：共有シートのみ表示<br><br>" +
-
-            "<b>▷ JSONインポート</b><br>" +
-            "メニュー →「設定データをインポート」または「カウントデータをインポート」<br>" +
-            "エクスポートしたJSONファイルを選択すると対応するスロットに上書き復元<br>" +
-            "異なる種類のファイルを読み込んだ場合はエラーを表示"
-
-        val tv = TextView(this).apply {
-            text = android.text.Html.fromHtml(html)
-            setPadding(dp(20), dp(12), dp(20), dp(12))
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-            setLineSpacing(dp(2).toFloat(), 1f)
-        }
         val scroll = ScrollView(this)
-        scroll.addView(tv)
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(8), dp(16), dp(24))
+        }
+        scroll.addView(root)
+
+        val sectionAnchors = mutableListOf<View>()
+
+        fun section(title: String) {
+            val divider = View(this).apply { setBackgroundColor(Color.parseColor("#CCCCCC")) }
+            root.addView(divider, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 1).also { it.topMargin = dp(12) })
+            sectionAnchors.add(divider)
+            root.addView(TextView(this).apply {
+                text = title
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(Color.parseColor("#1976D2"))
+                setPadding(0, dp(8), 0, dp(4))
+            })
+        }
+
+        fun item(title: String, body: String) {
+            root.addView(TextView(this).apply {
+                text = "▷ $title"
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(Color.parseColor("#333333"))
+                setPadding(dp(4), dp(10), 0, dp(2))
+            })
+            root.addView(TextView(this).apply {
+                text = body
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+                setTextColor(Color.parseColor("#666666"))
+                setPadding(dp(12), 0, 0, 0)
+                setLineSpacing(dp(2).toFloat(), 1f)
+            })
+        }
+
+        // 目次
+        root.addView(TextView(this).apply {
+            text = "目次"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.parseColor("#1976D2"))
+            setPadding(0, dp(4), 0, dp(6))
+        })
+        listOf("1. カウンター操作", "2. 色の変更", "3. 集計・コピー", "4. ファイル操作")
+            .forEachIndexed { i, label ->
+                root.addView(TextView(this).apply {
+                    text = "　$label  ▶"
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                    setTextColor(Color.parseColor("#1565C0"))
+                    setPadding(dp(4), dp(4), 0, dp(4))
+                    setOnClickListener {
+                        sectionAnchors.getOrNull(i)?.let { target ->
+                            scroll.post { scroll.smoothScrollTo(0, target.top) }
+                        }
+                    }
+                })
+            }
+
+        // 1. カウンター操作
+        section("1. カウンター操作")
+        item("タイトルの変更", "タイトルをタップ")
+        item("ネタ名の変更", "ネタ名をタップ")
+        item("カウントアップ・ダウン", "＋ / － ボタンをタップ")
+        item("カウントステップ（×1 / ×10）", "タイトル下の ×1 / ×10 をタップ\n＋／－ボタンの増減量が切り替わります")
+        item("並べ替え", "数字を長押ししてドラッグ\n移動先に割り込み、以降がひとつズレます")
+        item("カードの削除", "カード右上の ☒ をタップ（確認あり）")
+        item("カウントリセット", "下部「カウントリセット」をタップ\nカウントのみ0に戻します（ネタ名・設定はそのまま）")
+        item("初期化", "下部「初期化」をタップ\nデフォルト6種類に戻り、すべての設定がリセットされます")
+        item("単位の変更", "メニュー →「単位を変更」をタップ")
+        item("音声入力", "タイトル右の 🎤 をタップ\n例：「いか いち まぐろ さん」")
+
+        // 2. 色の変更
+        section("2. 色の変更")
+        item("テーマ変更", "メニュー →「テーマ変更」をタップ\n7種のカラーパレットから選択できます")
+        item("カウンターの色を個別変更（マイカラーのみ）", "ネタ名を長押し → 色を長押し\nRGBスライダーで自由に色を設定できます\n※パステル〜ピンクのパレットは読み取り専用")
+        item("マイカラーパレット編集", "テーマ変更画面でマイカラーを長押し\n20色を個別にRGBエディタで編集できます")
+        item("他パレットからの一括コピー", "ネタ名を長押し → 色選択の「別パレットから一括コピー」\nまたはマイカラーパレット編集画面のコピーボタン")
+
+        // 3. 集計・コピー
+        section("3. 集計・コピー")
+        item("棒グラフ", "メニュー →「棒グラフ（多い順・0含む）」")
+        item("円グラフ", "メニュー →「円グラフ（多い順・0除外）」")
+        item("クリップボードにコピー", "メニュー →「クリップボードにコピー」\n全カウントをテキスト形式でコピーします")
+
+        // 4. ファイル操作
+        section("4. ファイル操作")
+        item("カウンター設定の保存／呼出", "メニュー →「カウンター保存／呼出」をタップ\nタイトル・単位・ネタ名・パレットを10スロットに保存\n呼び出し時のカウントはすべて0")
+        item("カウント結果の保存／呼出", "メニュー →「カウント結果保存／呼出」をタップ\n10ファイル×12スロットにカウント数も含めて保存・復元\n続きからカウントを再開できます")
+        item("保存先設定", "下部「保存先設定」をタップ\nカウント結果の上書き先ファイル・スロットを選択")
+        item("上書き保存", "下部「上書き保存」をタップ\n設定した保存先にカウント結果を即時保存")
+        item("JSONエクスポート", "メニュー →「設定データをエクスポート」または「カウントデータをエクスポート」\n保存スロットの内容をJSON形式で書き出します\nAndroid 10以降：ダウンロードフォルダに保存後トーストで通知し共有シートを表示\nAndroid 9以前：共有シートのみ表示")
+        item("JSONインポート", "メニュー →「設定データをインポート」または「カウントデータをインポート」\nエクスポートしたJSONファイルを選択すると対応するスロットに上書き復元\n異なる種類のファイルを読み込んだ場合はエラーを表示")
+
         AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle("マニュアル  v1.00+261804072439")
             .setView(scroll)
