@@ -755,7 +755,13 @@ class MainActivity : Activity() {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(Color.parseColor("#1976D2"))
-            setPadding(0, dp(4), 0, dp(6))
+            setPadding(0, dp(4), 0, dp(2))
+        })
+        root.addView(TextView(this).apply {
+            text = "（項目をタップするとジャンプします）"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+            setTextColor(Color.parseColor("#888888"))
+            setPadding(dp(4), 0, 0, dp(6))
         })
         listOf("1. カウンター操作", "2. 色の変更", "3. 集計・コピー", "4. ファイル操作")
             .forEachIndexed { i, label ->
