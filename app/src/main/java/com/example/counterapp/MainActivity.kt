@@ -711,13 +711,25 @@ class MainActivity : Activity() {
             root.addView(divider, LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 1).also { it.topMargin = dp(12) })
             sectionAnchors.add(divider)
-            root.addView(TextView(this).apply {
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setGravity(Gravity.CENTER_VERTICAL)
+            }
+            row.addView(TextView(this).apply {
                 text = title
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(Color.parseColor("#1976D2"))
                 setPadding(0, dp(8), 0, dp(4))
+            }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            row.addView(TextView(this).apply {
+                text = "目次へ ▲"
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                setTextColor(Color.parseColor("#1565C0"))
+                setPadding(dp(8), dp(8), 0, dp(4))
+                setOnClickListener { scroll.post { scroll.smoothScrollTo(0, 0) } }
             })
+            root.addView(row)
         }
 
         fun item(title: String, body: String) {
