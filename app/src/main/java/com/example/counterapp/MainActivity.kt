@@ -975,7 +975,8 @@ class MainActivity : Activity() {
     private fun quickSaveDestLabel(): String {
         if (quickSaveFileIdx < 0 || quickSaveSlotIdx < 0) return "保存先設定（未設定）"
         val fileName = prefs.getString("cnt_file_${quickSaveFileIdx}_name", "ファイル${quickSaveFileIdx + 1}") ?: "ファイル${quickSaveFileIdx + 1}"
-        return "保存先：$fileName / スロット${quickSaveSlotIdx + 1}"
+        val slotName = prefs.getString("cnt_f${quickSaveFileIdx}_${quickSaveSlotIdx}_title", "スロット${quickSaveSlotIdx + 1}") ?: "スロット${quickSaveSlotIdx + 1}"
+        return "保存先：$fileName / $slotName"
     }
 
     private fun showQuickSavePicker() {
